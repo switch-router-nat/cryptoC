@@ -1,0 +1,5 @@
+objs = []
+
+objs = objs + Object(Glob('*.c'))
+
+Return('objs')
