@@ -268,7 +268,6 @@ static int rawdes_setkey(RAW_DES* self, const char* userkey)
 	{
 		self->key[idx] = userkey[DES_KEYLENGTH_BYTE - 1 - idx];
 	}	
-	//memcpy(self->key, userkey, DES_KEYLENGTH_BYTE);
 
 	/* Partity drop */
 	for (idx = 0; idx < 56; idx++)
@@ -353,27 +352,31 @@ static void* des_dtor(void* _self)
 }
 
 
-static int des_setkey(DES* _self, const char* userkey)
+static int des_setkey(void* _self, const cc_uint8_t* userkey)
 {
-	rawdes_setkey(_self->m_des, userkey);
+	DES* self = (DES*)_self;
+
+	rawdes_setkey(self->m_des, userkey);
 
 	return 0;
 }
 
 /* inblock  8 byte */
 /* outblock 8 byte */
-static int des_processblock(DES* _self, const cc_uint8_t* inblock, cc_uint8_t *outblock)
+static int des_processblock(void* _self, const cc_uint8_t* inblock, cc_uint8_t *outblock)
 {
+	DES* self = (DES*)_self;
+
 	enum blockcipher_dir_e dir;
 	cc_uint32_t text[2];
 
-	dir = ((BLOCKCIPHER*)_self)->dir;
+	dir = ((BLOCKCIPHER*)self)->dir;
 
 	rawdes_getblock(text, inblock);
 
 	rawdes_initial_permutation(text);
 
-	rawdes_docryption(_self->m_des, dir, text);
+	rawdes_docryption(self->m_des, dir, text);
 
 	rawdes_final_permutation(text);
 
@@ -383,8 +386,8 @@ static int des_processblock(DES* _self, const cc_uint8_t* inblock, cc_uint8_t *o
 }
 
 typedef struct {
-	int (*SetKey)(DES* self, const char* userkey);
-	int (*ProcessBlock)(DES *self, const cc_uint8_t* inblock, cc_uint8_t *outblock);
+	int (*SetKey)(void* _self, const cc_uint8_t* userkey);
+	int (*ProcessBlock)(void *_self, const cc_uint8_t* inblock, cc_uint8_t *outblock);
 }DES_vtbl;
 
 static DES_vtbl const des_vtbl = {
@@ -438,7 +441,7 @@ static void* des_3des_dtor(void* _self)
 	return self;
 }
 
-static int des_3des_setkey(DES_3DES* _self, const char* userkey)
+static int des_3des_setkey(DES_3DES* _self, const cc_uint8_t* userkey)
 {
 	rawdes_setkey(_self->m_des1, userkey);
 	rawdes_setkey(_self->m_des2, userkey);
@@ -479,7 +482,7 @@ static int des_3des_processblock(DES_3DES* _self, const cc_uint8_t* inblock, cc_
 }
 
 typedef struct {
-	int (*SetKey)(DES_3DES* self, const char* userkey);
+	int (*SetKey)(DES_3DES* self, const cc_uint8_t* userkey);
 	int (*ProcessBlock)(DES_3DES *self, const cc_uint8_t* inblock, cc_uint8_t *outblock);
 }DES_3DES_vtbl;
 

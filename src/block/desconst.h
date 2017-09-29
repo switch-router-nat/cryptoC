@@ -1,5 +1,5 @@
 /*
- * File       : desconst.c
+ * File       : desconst.h
  *
  * Change Logs:
  * Date           Author       Notes

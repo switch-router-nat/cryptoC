@@ -33,7 +33,6 @@ static int blockcipher_processblock(BLOCKCIPHER *self, const cc_uint8_t* inBlock
 typedef struct {
 	int (*SetKey)(BLOCKCIPHER* self, const cc_uint8_t* userkey);
 	int (*ProcessBlock)(BLOCKCIPHER *self, const cc_uint8_t* inBlock, cc_uint8_t *outBlock);
-	int (*BlockSize)(BLOCKCIPHER* self, const cc_uint8_t* userkey);
 }BLOCKCIPHERvtbl;
 
 /* Virtual Table of BLOCKCIPHER */
@@ -385,7 +384,7 @@ static void* blockcipher_ctor(void *_self, va_list *app)
 
 	self->iv = NULL;
 
-	return self;
+	return _self;
 }
 
 
