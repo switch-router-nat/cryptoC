@@ -199,39 +199,26 @@ static void aes_invshiftrows(cc_uint8_t* state)
 
 }
 
-
 /*
     GF(2^8) with irreducible polymimal x^8+x^4+x^3+x+1  
 */
-static cc_uint8_t aes_GFmul(cc_uint8_t p1, cc_uint8_t p2)
+static cc_uint8_t aes_GFmul(cc_uint8_t a, cc_uint8_t b)
 {
 	cc_uint8_t result = 0;
-	cc_uint8_t r[8] = {0};
-	cc_uint8_t i;
+	cc_uint32_t sum;
 
-	r[0] = p2;
-	
-	for (i = 1;i < 8;i++)
+	if (a && b)
 	{
-		r[i] = r[i-1] << 1;
-
-		if (r[i-1] & 0x80)
+		sum = AES_MUL_LOG[a] + AES_MUL_LOG[b];
+		if (sum > 255)
 		{
-			r[i] ^= 0x1b;
+			sum = sum - 255;
 		}
-	}
-
-	for (i = 0; i < 8; i++)
-	{
-		if (p1 & (0x01 << i))
-		{
-			result ^= r[i];
-		}
+		result = AES_MUL_EXP[sum];
 	}
 
 	return result;
-}
-
+} 
 
 static void aes_mixcolumns(cc_uint8_t* state)
 {
