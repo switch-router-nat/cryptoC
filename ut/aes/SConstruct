@@ -1,0 +1,1 @@
+Program('ut_aes',Glob('*.c'),LIBS=['cryptoc'],LIBPATH='../../src/')
