@@ -50,6 +50,10 @@ typedef struct{
 	void* data;
 }BLOCKCIPHER;
 
+typedef struct {
+	int (*SetKey)(void* _self, const cc_uint8_t* userkey);
+	int (*ProcessBlock)(void *_self, const cc_uint8_t* inBlock, cc_uint8_t *outBlock);
+}BLOCKCIPHERvtbl;
 
 int BlockCipher_SetKey(void* _self, const char* userkey);
 int BlockCipher_SetMode(void* _self, enum blockcipher_mode_e mode);

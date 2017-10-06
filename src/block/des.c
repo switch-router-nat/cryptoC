@@ -385,12 +385,7 @@ static int des_processblock(void* _self, const cc_uint8_t* inblock, cc_uint8_t *
 	return 0;
 }
 
-typedef struct {
-	int (*SetKey)(void* _self, const cc_uint8_t* userkey);
-	int (*ProcessBlock)(void *_self, const cc_uint8_t* inblock, cc_uint8_t *outblock);
-}DES_vtbl;
-
-static DES_vtbl const des_vtbl = {
+static BLOCKCIPHERvtbl const des_vtbl = {
 	&des_setkey,
 	&des_processblock,
 };
@@ -430,7 +425,7 @@ static void* des_3des_ctor(void *_self, va_list *app)
 
 static void* des_3des_dtor(void* _self)
 {
-	DES_3DES* self = _self;
+	DES_3DES* self = (DES_3DES*)_self;
 	
 	delete(self->m_des1);
 	delete(self->m_des2);
@@ -441,21 +436,24 @@ static void* des_3des_dtor(void* _self)
 	return self;
 }
 
-static int des_3des_setkey(DES_3DES* _self, const cc_uint8_t* userkey)
+static int des_3des_setkey(void* _self, const cc_uint8_t* userkey)
 {
-	rawdes_setkey(_self->m_des1, userkey);
-	rawdes_setkey(_self->m_des2, userkey);
-	rawdes_setkey(_self->m_des3, userkey);
+	DES_3DES* self = (DES_3DES*)_self;
+
+	rawdes_setkey(self->m_des1, userkey);
+	rawdes_setkey(self->m_des2, userkey);
+	rawdes_setkey(self->m_des3, userkey);
 
 	return 0;
 }
 
-static int des_3des_processblock(DES_3DES* _self, const cc_uint8_t* inblock, cc_uint8_t *outblock)
+static int des_3des_processblock(void* _self, const cc_uint8_t* inblock, cc_uint8_t *outblock)
 {
 	enum blockcipher_dir_e dir;
 	cc_uint32_t text[2];
+	DES_3DES* self = (DES_3DES*)_self;
 
-	dir = ((BLOCKCIPHER*)_self)->dir;
+	dir = ((BLOCKCIPHER*)self)->dir;
 
 	rawdes_getblock(text, inblock);
 
@@ -463,15 +461,15 @@ static int des_3des_processblock(DES_3DES* _self, const cc_uint8_t* inblock, cc_
 
 	if (BLOCKCIPHER_DIR_ENC == dir)
 	{
-		rawdes_docryption(_self->m_des1, BLOCKCIPHER_DIR_ENC, text);
-		rawdes_docryption(_self->m_des2, BLOCKCIPHER_DIR_DEC, text);
-		rawdes_docryption(_self->m_des3, BLOCKCIPHER_DIR_ENC, text);
+		rawdes_docryption(self->m_des1, BLOCKCIPHER_DIR_ENC, text);
+		rawdes_docryption(self->m_des2, BLOCKCIPHER_DIR_DEC, text);
+		rawdes_docryption(self->m_des3, BLOCKCIPHER_DIR_ENC, text);
 	}
 	else
 	{
-		rawdes_docryption(_self->m_des1, BLOCKCIPHER_DIR_DEC, text);
-		rawdes_docryption(_self->m_des2, BLOCKCIPHER_DIR_ENC, text);
-		rawdes_docryption(_self->m_des3, BLOCKCIPHER_DIR_DEC, text);
+		rawdes_docryption(self->m_des1, BLOCKCIPHER_DIR_DEC, text);
+		rawdes_docryption(self->m_des2, BLOCKCIPHER_DIR_ENC, text);
+		rawdes_docryption(self->m_des3, BLOCKCIPHER_DIR_DEC, text);
 	}
 
 	rawdes_final_permutation(text);
@@ -481,12 +479,7 @@ static int des_3des_processblock(DES_3DES* _self, const cc_uint8_t* inblock, cc_
 	return 0;
 }
 
-typedef struct {
-	int (*SetKey)(DES_3DES* self, const cc_uint8_t* userkey);
-	int (*ProcessBlock)(DES_3DES *self, const cc_uint8_t* inblock, cc_uint8_t *outblock);
-}DES_3DES_vtbl;
-
-static DES_3DES_vtbl const des_3des_vtbl = {
+static BLOCKCIPHERvtbl const des_3des_vtbl = {
 	&des_3des_setkey,
 	&des_3des_processblock,
 };

@@ -20,20 +20,15 @@
 /* 
     virtual function  implement by BLOCKCIPHER
 */
-static int blockcipher_setkey(BLOCKCIPHER* self, const cc_uint8_t* userkey)
+static int blockcipher_setkey(void* _self, const cc_uint8_t* userkey)
 {
 	return 0;
 }
 
-static int blockcipher_processblock(BLOCKCIPHER *self, const cc_uint8_t* inBlock, cc_uint8_t *outBlock)
+static int blockcipher_processblock(void *_self, const cc_uint8_t* inBlock, cc_uint8_t *outBlock)
 {
 	return 0;
 }
-
-typedef struct {
-	int (*SetKey)(BLOCKCIPHER* self, const cc_uint8_t* userkey);
-	int (*ProcessBlock)(BLOCKCIPHER *self, const cc_uint8_t* inBlock, cc_uint8_t *outBlock);
-}BLOCKCIPHERvtbl;
 
 /* Virtual Table of BLOCKCIPHER */
 static BLOCKCIPHERvtbl const vtbl = {

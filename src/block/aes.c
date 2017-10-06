@@ -367,13 +367,7 @@ static int aes_processblock(void* _self, const cc_uint8_t* inblock, cc_uint8_t *
 	return 0;
 }
 
-typedef struct {
-	int (*SetKey)(void* self, const cc_uint8_t* userkey);
-	int (*ProcessBlock)(void *self, const cc_uint8_t* inblock, cc_uint8_t *outblock);
-}AES_vtbl;
-
-
-static AES_vtbl const aes_vtbl = {
+static BLOCKCIPHERvtbl const aes_vtbl = {
 	&aes_setkey,
 	&aes_processblock,
 };
