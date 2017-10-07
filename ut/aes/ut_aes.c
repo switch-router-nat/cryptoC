@@ -3,12 +3,9 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
-#include "../../src/base/basetype.h"
-#include "../../src/base/object.h"
-#include "../../src/block/blockcipher.h"
-#include "../../src/block/aes.h"
-
+#include "../../src/cryptoc.h"
 
 int main()
 {
@@ -16,11 +13,11 @@ int main()
 
 	void* aes = new(Aes, AES_TYPE_128);
 
-	cc_uint8_t plaintext[16] = {0x00, 0x04, 0x12, 0x14, 0x12, 0x04, 0x12, 0x00, 0x0c, 0x00, 0x13, 0x11, 0x08, 0x23, 0x19, 0x19};
-	cc_uint8_t aeskey[16] = {0x24, 0x75, 0xa2, 0xb3, 0x34, 0x75, 0x56, 0x88, 0x31, 0xe2, 0x12, 0x00, 0x13, 0xaa, 0x54, 0x87};
-	cc_uint8_t ciphertext[16] = {0};
-	cc_uint8_t plaintext_res[16] = {0};
-	cc_uint32_t cipherlen = 0;
+	uint8_t plaintext[16] = {0x00, 0x04, 0x12, 0x14, 0x12, 0x04, 0x12, 0x00, 0x0c, 0x00, 0x13, 0x11, 0x08, 0x23, 0x19, 0x19};
+	uint8_t aeskey[16] = {0x24, 0x75, 0xa2, 0xb3, 0x34, 0x75, 0x56, 0x88, 0x31, 0xe2, 0x12, 0x00, 0x13, 0xaa, 0x54, 0x87};
+	uint8_t ciphertext[16] = {0};
+	uint8_t plaintext_res[16] = {0};
+	uint32_t cipherlen = 0;
 	
 	printf("\n=========plaintext =================\n");
 	for (i= 0;i < 16; i++)
@@ -39,7 +36,7 @@ int main()
 	}
   	printf("\n=========cipher end=================\n");
 
-    cc_uint32_t plainres_len;
+    uint32_t plainres_len;
 	BlockCipher_Decryption(aes, ciphertext, cipherlen, plaintext_res, &plainres_len);
 	printf("plainres_len  %d", plainres_len);
 	printf("\n=========plaintext =================\n");

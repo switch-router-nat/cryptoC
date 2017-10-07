@@ -11,13 +11,13 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
-#include "../base/basetype.h"
 #include "../base/object.h"
 #include "sha.h"
 
 
-static void sha_calculatedigest(void* _self, const cc_uint8_t *data, cc_uint32_t size[], cc_uint8_t *digest)
+static void sha_calculatedigest(void* _self, const uint8_t *data, uint64_t size[], uint8_t *digest)
 {
 	return;
 } 
@@ -51,7 +51,7 @@ static const OBJECT _Sha = {
 const void* Sha = &_Sha;
 
 
-void SHA_CalculateDigest(void* _self, const cc_uint8_t *data, cc_uint32_t size[], cc_uint8_t *digest)
+void SHA_CalculateDigest(void* _self, const uint8_t *data, uint64_t size[], uint8_t *digest)
 {
 	SHA* self = _self;
 	(((SHAvtbl*)(((OBJECT*)(self->object))->vptr))->CalculateDigest)((void*)self, data, size, digest);

@@ -11,16 +11,16 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
-#include "../base/basetype.h"
 #include "../base/object.h"
 #include "blockcipher.h"
 #include "aes.h"
 #include "aesconst.h"
 
-static cc_uint32_t aes_rotsubword(cc_uint32_t word)
+static uint32_t aes_rotsubword(uint32_t word)
 {
-	cc_uint32_t b[4];
+	uint32_t b[4];
 
 	/* RotWord */
 	word = ((word & 0x00FFFFFF) << 8) | ((word & 0xFF000000) >> 24);
@@ -57,10 +57,10 @@ static void* aes_dtor(void* _self)
 	return _self;
 }
 
-static int aes_calc_roundkey(AES* self, cc_uint8_t round)
+static int aes_calc_roundkey(AES* self, uint8_t round)
 {
-	cc_uint32_t t;
-	cc_uint32_t lastround;
+	uint32_t t;
+	uint32_t lastround;
 	if (0 == round)
 	{
 		self->roundkey[0] = (self->key[0]  << 24)  | (self->key[1]  << 16)  | (self->key[2]  << 8) | (self->key[3]);
@@ -82,12 +82,12 @@ static int aes_calc_roundkey(AES* self, cc_uint8_t round)
 
 }
 
-static int aes_setkey(void* _self, const cc_uint8_t* userkey)
+static int aes_setkey(void* _self, const uint8_t* userkey)
 {
 	AES* self = _self;
-	cc_uint8_t round;
-	cc_uint8_t keylen;
-	cc_uint8_t maxround;
+	uint8_t round;
+	uint8_t keylen;
+	uint8_t maxround;
 	int idx = 0;
 
 	if (AES_TYPE_128 == self->type)
@@ -119,32 +119,32 @@ static int aes_setkey(void* _self, const cc_uint8_t* userkey)
 	return 0;
 }
 
-static void aes_addroundkey(AES* self, cc_uint8_t round, cc_uint8_t* state)
+static void aes_addroundkey(AES* self, uint8_t round, uint8_t* state)
 {
-	state[0] ^= (cc_uint8_t)(self->roundkey[round * 4] >> 24);
-	state[1] ^= (cc_uint8_t)(self->roundkey[round * 4] >> 16);
-	state[2] ^= (cc_uint8_t)(self->roundkey[round * 4] >> 8);
-	state[3] ^= (cc_uint8_t)(self->roundkey[round * 4]);
+	state[0] ^= (uint8_t)(self->roundkey[round * 4] >> 24);
+	state[1] ^= (uint8_t)(self->roundkey[round * 4] >> 16);
+	state[2] ^= (uint8_t)(self->roundkey[round * 4] >> 8);
+	state[3] ^= (uint8_t)(self->roundkey[round * 4]);
 
-	state[4] ^= (cc_uint8_t)(self->roundkey[round * 4 + 1] >> 24);
-	state[5] ^= (cc_uint8_t)(self->roundkey[round * 4 + 1] >> 16);
-	state[6] ^= (cc_uint8_t)(self->roundkey[round * 4 + 1] >> 8);
-	state[7] ^= (cc_uint8_t)(self->roundkey[round * 4 + 1]);
+	state[4] ^= (uint8_t)(self->roundkey[round * 4 + 1] >> 24);
+	state[5] ^= (uint8_t)(self->roundkey[round * 4 + 1] >> 16);
+	state[6] ^= (uint8_t)(self->roundkey[round * 4 + 1] >> 8);
+	state[7] ^= (uint8_t)(self->roundkey[round * 4 + 1]);
 
-	state[8]  ^= (cc_uint8_t)(self->roundkey[round * 4 + 2] >> 24);
-	state[9]  ^= (cc_uint8_t)(self->roundkey[round * 4 + 2] >> 16);
-	state[10] ^= (cc_uint8_t)(self->roundkey[round * 4 + 2] >> 8);
-	state[11] ^= (cc_uint8_t)(self->roundkey[round * 4 + 2]);
+	state[8]  ^= (uint8_t)(self->roundkey[round * 4 + 2] >> 24);
+	state[9]  ^= (uint8_t)(self->roundkey[round * 4 + 2] >> 16);
+	state[10] ^= (uint8_t)(self->roundkey[round * 4 + 2] >> 8);
+	state[11] ^= (uint8_t)(self->roundkey[round * 4 + 2]);
 
-	state[12] ^= (cc_uint8_t)(self->roundkey[round * 4 + 3] >> 24);
-	state[13] ^= (cc_uint8_t)(self->roundkey[round * 4 + 3] >> 16);
-	state[14] ^= (cc_uint8_t)(self->roundkey[round * 4 + 3] >> 8);
-	state[15] ^= (cc_uint8_t)(self->roundkey[round * 4 + 3]);
+	state[12] ^= (uint8_t)(self->roundkey[round * 4 + 3] >> 24);
+	state[13] ^= (uint8_t)(self->roundkey[round * 4 + 3] >> 16);
+	state[14] ^= (uint8_t)(self->roundkey[round * 4 + 3] >> 8);
+	state[15] ^= (uint8_t)(self->roundkey[round * 4 + 3]);
 }
 
-static void aes_shiftrows(cc_uint8_t* state)
+static void aes_shiftrows(uint8_t* state)
 {
-	cc_uint8_t temp;
+	uint8_t temp;
 
 	/* Row1: 1-byte shift */
 	temp = state[1];
@@ -170,9 +170,9 @@ static void aes_shiftrows(cc_uint8_t* state)
 	state[3]  = temp;
 }
 
-static void aes_invshiftrows(cc_uint8_t* state)
+static void aes_invshiftrows(uint8_t* state)
 {
-	cc_uint8_t temp;
+	uint8_t temp;
     
     /* Row1: 1-byte shift */
 	temp = state[13];
@@ -202,10 +202,10 @@ static void aes_invshiftrows(cc_uint8_t* state)
 /*
     GF(2^8) with irreducible polymimal x^8+x^4+x^3+x+1  
 */
-static cc_uint8_t aes_GFmul(cc_uint8_t a, cc_uint8_t b)
+static uint8_t aes_GFmul(uint8_t a, uint8_t b)
 {
-	cc_uint8_t result = 0;
-	cc_uint32_t sum;
+	uint8_t result = 0;
+	uint32_t sum;
 
 	if (a && b)
 	{
@@ -220,10 +220,10 @@ static cc_uint8_t aes_GFmul(cc_uint8_t a, cc_uint8_t b)
 	return result;
 } 
 
-static void aes_mixcolumns(cc_uint8_t* state)
+static void aes_mixcolumns(uint8_t* state)
 {
-	cc_uint8_t t[16];
-	cc_uint8_t col;
+	uint8_t t[16];
+	uint8_t col;
 	memcpy(t, state, 16); 
 
 	for (col = 0; col < 4; col++)
@@ -235,10 +235,10 @@ static void aes_mixcolumns(cc_uint8_t* state)
 	}
 }
 
-static void aes_invmixcolumns(cc_uint8_t* state)
+static void aes_invmixcolumns(uint8_t* state)
 {
-	cc_uint8_t t[16];
-	cc_uint8_t col;
+	uint8_t t[16];
+	uint8_t col;
 
 	memcpy(t, state, 16);
 
@@ -252,28 +252,28 @@ static void aes_invmixcolumns(cc_uint8_t* state)
 }
 
 
-static void aes_subbyte(cc_uint8_t* state)
+static void aes_subbyte(uint8_t* state)
 {
-	cc_uint8_t i;
+	uint8_t i;
 	for (i = 0; i < 16; i++)
 	{
 		state[i] = AES_SubByte[state[i]];
 	}
 }
 
-static void aes_invsubbyte(cc_uint8_t* state)
+static void aes_invsubbyte(uint8_t* state)
 {
-	cc_uint8_t i;
+	uint8_t i;
 	for (i = 0; i < 16; i++)
 	{
 		state[i] = AES_InvSubByte[state[i]];
 	}
 }
 
-static void aes_encryption(AES* self, cc_uint8_t maxround, const cc_uint8_t* inblock, cc_uint8_t* outblock)
+static void aes_encryption(AES* self, uint8_t maxround, const uint8_t* inblock, uint8_t* outblock)
 {
-	cc_uint8_t round = 0;
-	cc_uint8_t state[16];
+	uint8_t round = 0;
+	uint8_t state[16];
 
 	memcpy(state, inblock, 16);
 
@@ -301,10 +301,10 @@ static void aes_encryption(AES* self, cc_uint8_t maxround, const cc_uint8_t* inb
 	memcpy(outblock, state, 16);
 }
 
-static void aes_decryption(AES* self, cc_uint8_t maxround, const cc_uint8_t* inblock, cc_uint8_t* outblock)
+static void aes_decryption(AES* self, uint8_t maxround, const uint8_t* inblock, uint8_t* outblock)
 {
-	cc_uint8_t round = 0;
-	cc_uint8_t state[16];
+	uint8_t round = 0;
+	uint8_t state[16];
 
 	memcpy(state, inblock, 16);
 
@@ -335,11 +335,11 @@ static void aes_decryption(AES* self, cc_uint8_t maxround, const cc_uint8_t* inb
 For AES128 , inblock and outblock is 128bit
 
 */
-static int aes_processblock(void* _self, const cc_uint8_t* inblock, cc_uint8_t *outblock)
+static int aes_processblock(void* _self, const uint8_t* inblock, uint8_t *outblock)
 {
 	AES* self = _self;
 	enum blockcipher_dir_e dir;
-	cc_uint8_t maxround = 0;
+	uint8_t maxround = 0;
 
 	dir = ((BLOCKCIPHER*)self)->dir;
 	if (AES_TYPE_128 == self->type)

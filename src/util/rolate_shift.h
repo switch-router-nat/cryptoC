@@ -8,7 +8,7 @@
 #define _ROLATE_SHIFT_H_
 
 
-cc_uint32_t Rotl32(cc_uint32_t word, cc_uint8_t l);
+uint32_t Rotl32(uint32_t word, uint8_t l);
 
 
 #endif

@@ -8,9 +8,7 @@
 #ifndef _DES_CONST_H
 #define _DES_CONST_H
 
-#include "../base/basetype.h"
-
-const cc_uint8_t DES_ParityDrop[56] = {
+const uint8_t DES_ParityDrop[56] = {
 	57, 49, 41, 33, 25, 17,  9,  1,
 	58, 50, 42, 34, 26, 18, 10,  2,
 	59, 51, 43, 35, 27, 19, 11,  3,
@@ -20,11 +18,11 @@ const cc_uint8_t DES_ParityDrop[56] = {
 	29, 21, 13,  5, 28, 20, 12,  4,
 };
 
-const cc_uint8_t DES_KeyLeftShift[] = {
+const uint8_t DES_KeyLeftShift[] = {
 	1, 2, 4, 6, 8, 10, 12, 14, 15, 17, 19, 21, 23, 25, 27, 28
 };
 
-const cc_uint8_t DES_KeyCompression[] = {
+const uint8_t DES_KeyCompression[] = {
 	14, 17, 11, 24,  1,  5,  3, 28,
 	15,  6, 21, 10, 23, 19, 12,  4,
 	26,  8, 16,  7, 27, 20, 13,  2,
@@ -33,7 +31,7 @@ const cc_uint8_t DES_KeyCompression[] = {
 	34, 53, 46, 42, 50, 36, 29, 32
 };
 
-const cc_uint32_t DES_Spbox[8][64] = 
+const uint32_t DES_Spbox[8][64] = 
 {
 	{
 		0x808200, 0x8000, 0x808002, 0x2, 0x200, 0x808202, 0x800202, 0x800000, 

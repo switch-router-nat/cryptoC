@@ -11,15 +11,16 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
-#include "../base/basetype.h"
 #include "../base/object.h"
 #include "../util/rolate_shift.h"
 #include "sha.h"
 #include "sha1.h"
 
-#define SHA1_CHUNKSIZE       512 
-#define SHA1_CHUNKSIZE_BYTE  64 
+#define SHA1_CHUNKSIZE        512 
+#define SHA1_CHUNKSIZE_BYTE    64 
+#define SHA1_LENGTHSIZE_BYTE    8   
 
 ////////////////////////////////
 // start of Steve Reid's code //
@@ -42,26 +43,26 @@
 	@state: 5 * 32bit
 	@pdata: 64 bytes
 */
-static void sha1_transform(cc_uint32_t *state, const cc_uint8_t *pdata)
+static void sha1_transform(uint32_t *state, const uint8_t *pdata)
 {
-	cc_uint32_t W[16];
-	cc_uint32_t x[16];
-	cc_uint8_t i;
+	uint32_t W[16];
+	uint32_t x[16];
+	uint8_t i;
 
 	for (i = 0; i < 16; i++)
 	{
-		x[i] = (((cc_uint32_t)(*pdata) << 24)       | 
-		        ((cc_uint32_t)(*(pdata + 1)) << 16) | 
-		        ((cc_uint32_t)(*(pdata + 2)) << 8)  | 
-		        ((cc_uint32_t)(*(pdata + 3))));
+		x[i] = (((uint32_t)(*pdata) << 24)       | 
+		        ((uint32_t)(*(pdata + 1)) << 16) | 
+		        ((uint32_t)(*(pdata + 2)) << 8)  | 
+		        ((uint32_t)(*(pdata + 3))));
 		pdata = pdata + 4;
 	}
 
-	cc_uint32_t a = state[0];
-    cc_uint32_t b = state[1];
-    cc_uint32_t c = state[2];
-    cc_uint32_t d = state[3];
-    cc_uint32_t e = state[4];
+	uint32_t a = state[0];
+    uint32_t b = state[1];
+    uint32_t c = state[2];
+    uint32_t d = state[3];
+    uint32_t e = state[4];
 
     R0(a,b,c,d,e, 0); R0(e,a,b,c,d, 1); R0(d,e,a,b,c, 2); R0(c,d,e,a,b, 3);
     R0(b,c,d,e,a, 4); R0(a,b,c,d,e, 5); R0(e,a,b,c,d, 6); R0(d,e,a,b,c, 7);
@@ -100,14 +101,14 @@ static void sha1_transform(cc_uint32_t *state, const cc_uint8_t *pdata)
     @size: the size(bit) of @data 
     @digest: result
 */
-static void sha1_calculatedigest(void* _self, const cc_uint8_t *data, cc_uint32_t size[], cc_uint8_t *digest)
+static void sha1_calculatedigest(void* _self, const uint8_t *data, uint64_t size[], uint8_t *digest)
 {
-	const cc_uint8_t* pdata = data;
-	cc_uint32_t state[5];
-	cc_uint32_t size_h,size_l;
-	cc_uint8_t last_chunk[SHA1_CHUNKSIZE_BYTE];
-	cc_uint8_t secondlast_chunk[SHA1_CHUNKSIZE_BYTE];
-	cc_uint8_t i;
+	const uint8_t* pdata = data;
+	uint32_t state[5];
+	uint64_t unhashbyte;
+	uint8_t last_chunk[SHA1_CHUNKSIZE_BYTE];
+	uint8_t secondlast_chunk[SHA1_CHUNKSIZE_BYTE];
+	uint8_t i;
 
 	memset(last_chunk, 0, SHA1_CHUNKSIZE_BYTE);
 	memset(secondlast_chunk, 0, SHA1_CHUNKSIZE_BYTE);
@@ -118,56 +119,53 @@ static void sha1_calculatedigest(void* _self, const cc_uint8_t *data, cc_uint32_
     state[3] = 0x10325476;
     state[4] = 0xC3D2E1F0;
 
-    size_h = size[0];
-    size_l = size[1];
+    unhashbyte = size[0] >> 3;
 
-	while ((size_h > 0) || (size_l > SHA1_CHUNKSIZE))
+	while (unhashbyte >= SHA1_CHUNKSIZE_BYTE)
 	{
 		sha1_transform(state, pdata);
-		pdata = pdata + SHA1_CHUNKSIZE_BYTE;
-
-		if (0 == size_l)
-		{
-			size_h = size_h - 1;
-			size_l = -SHA1_CHUNKSIZE;
-		}
-		else
-		{
-			size_l = size_l - SHA1_CHUNKSIZE;
-		}
+		
+		pdata += SHA1_CHUNKSIZE_BYTE;
+		
+		unhashbyte -= SHA1_CHUNKSIZE_BYTE;
 	}
 
-	if ((size_l>>3) <= (SHA1_CHUNKSIZE_BYTE - 9))
+	if (unhashbyte < (SHA1_CHUNKSIZE_BYTE - SHA1_LENGTHSIZE_BYTE))
 	{
-		memcpy(last_chunk, pdata, size_l>>3);
+		memcpy(last_chunk, pdata, unhashbyte);
 		
-		last_chunk[size_l>>3] = 0x80;		
+		last_chunk[unhashbyte] = 0x80;		
+	}
+	else if (unhashbyte == (SHA1_CHUNKSIZE_BYTE - SHA1_LENGTHSIZE_BYTE))
+	{
+		memcpy(last_chunk, pdata, unhashbyte);
 	}
 	else
 	{
-		memcpy(secondlast_chunk, pdata, size_l>>3);
-		secondlast_chunk[size_l>>3] = 0x80;
+		memcpy(secondlast_chunk, pdata, unhashbyte);
+		
+		secondlast_chunk[unhashbyte] = 0x80;
 
 		sha1_transform(state, secondlast_chunk);
 	}
 
-	last_chunk[SHA1_CHUNKSIZE_BYTE - 8] = (cc_uint8_t)(size[0]>>24);
-	last_chunk[SHA1_CHUNKSIZE_BYTE - 7] = (cc_uint8_t)(size[0]>>16);
-	last_chunk[SHA1_CHUNKSIZE_BYTE - 6] = (cc_uint8_t)(size[0]>>8);
-	last_chunk[SHA1_CHUNKSIZE_BYTE - 5] = (cc_uint8_t)(size[0]);
-	last_chunk[SHA1_CHUNKSIZE_BYTE - 4] = (cc_uint8_t)(size[1]>>24);
-	last_chunk[SHA1_CHUNKSIZE_BYTE - 3] = (cc_uint8_t)(size[1]>>16);
-	last_chunk[SHA1_CHUNKSIZE_BYTE - 2] = (cc_uint8_t)(size[1]>>8);
-	last_chunk[SHA1_CHUNKSIZE_BYTE - 1] = (cc_uint8_t)(size[1]);
+	last_chunk[SHA1_CHUNKSIZE_BYTE - 8] = (uint8_t)(size[0] >> 56);
+	last_chunk[SHA1_CHUNKSIZE_BYTE - 7] = (uint8_t)(size[0] >> 48);
+	last_chunk[SHA1_CHUNKSIZE_BYTE - 6] = (uint8_t)(size[0] >> 40);
+	last_chunk[SHA1_CHUNKSIZE_BYTE - 5] = (uint8_t)(size[0] >> 32);
+	last_chunk[SHA1_CHUNKSIZE_BYTE - 4] = (uint8_t)(size[0] >> 24);
+	last_chunk[SHA1_CHUNKSIZE_BYTE - 3] = (uint8_t)(size[0] >> 16);
+	last_chunk[SHA1_CHUNKSIZE_BYTE - 2] = (uint8_t)(size[0] >> 8);
+	last_chunk[SHA1_CHUNKSIZE_BYTE - 1] = (uint8_t)(size[0]);
 
 	sha1_transform(state, last_chunk);
 
 	for (i = 0; i < 5; i++)
 	{
-		digest[i * 4 + 0] = (cc_uint8_t)(state[i] >> 24);
-		digest[i * 4 + 1] = (cc_uint8_t)(state[i] >> 16);
-		digest[i * 4 + 2] = (cc_uint8_t)(state[i] >> 8);
-		digest[i * 4 + 3] = (cc_uint8_t)(state[i]);
+		digest[i * 4 + 0] = (uint8_t)(state[i] >> 24);
+		digest[i * 4 + 1] = (uint8_t)(state[i] >> 16);
+		digest[i * 4 + 2] = (uint8_t)(state[i] >> 8);
+		digest[i * 4 + 3] = (uint8_t)(state[i]);
 	}
 
 	return;

@@ -16,8 +16,8 @@ extern const void* Des_3Des;
 
 typedef struct{
 	const void* object;
-	cc_uint8_t key[DES_KEYLENGTH_BYTE];    /* User Key */
-	cc_uint8_t roundkey[16 * 8];           /* Round Key*/
+	uint8_t key[DES_KEYLENGTH_BYTE];    /* User Key */
+	uint8_t roundkey[16 * 8];           /* Round Key*/
 }RAW_DES;
 
 

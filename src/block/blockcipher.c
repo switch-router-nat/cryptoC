@@ -11,8 +11,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
-#include "../base/basetype.h"
 #include "../base/object.h"
 #include "blockcipher.h"
 
@@ -20,12 +20,12 @@
 /* 
     virtual function  implement by BLOCKCIPHER
 */
-static int blockcipher_setkey(void* _self, const cc_uint8_t* userkey)
+static int blockcipher_setkey(void* _self, const uint8_t* userkey)
 {
 	return 0;
 }
 
-static int blockcipher_processblock(void *_self, const cc_uint8_t* inBlock, cc_uint8_t *outBlock)
+static int blockcipher_processblock(void *_self, const uint8_t* inBlock, uint8_t *outBlock)
 {
 	return 0;
 }
@@ -42,16 +42,16 @@ static BLOCKCIPHERvtbl const vtbl = {
 static int blockcipher_pad_zero
 (
 	void *_self, 
-	const cc_uint8_t* plaintext, 
-	cc_uint32_t plainlen, 
-	cc_uint32_t* nr_unpadblock, 
-	cc_uint8_t* lastblock
+	const uint8_t* plaintext, 
+	uint32_t plainlen, 
+	uint32_t* nr_unpadblock, 
+	uint8_t* lastblock
 )
 {
 	BLOCKCIPHER* self  = _self;
-	cc_uint8_t  blocksize = self->blocksize;
-	cc_uint32_t nr_block  = 0;
-	cc_uint32_t unpadbyte = 0;
+	uint8_t  blocksize = self->blocksize;
+	uint32_t nr_block  = 0;
+	uint32_t unpadbyte = 0;
 
 	memset(lastblock, 0, blocksize);
 
@@ -70,15 +70,15 @@ static int blockcipher_pad_zero
 static int blockcipher_unpad_zero
 (
 	void *_self, 
-	const cc_uint8_t* plaintext, 
-	cc_uint32_t plainlen, 
-	cc_uint32_t* nr_unpadblock, 
-	cc_uint8_t* nr_unpadbyte
+	const uint8_t* plaintext, 
+	uint32_t plainlen, 
+	uint32_t* nr_unpadblock, 
+	uint8_t* nr_unpadbyte
 )
 {
 	BLOCKCIPHER* self  = _self;
-	cc_uint8_t  blocksize = self->blocksize;
-	cc_uint32_t nr_block  = 0;
+	uint8_t  blocksize = self->blocksize;
+	uint32_t nr_block  = 0;
 
 	nr_block = plainlen / blocksize;
 
@@ -92,17 +92,17 @@ static int blockcipher_unpad_zero
 static int blockcipher_pad_pkcs7
 (
 	void *_self, 
-	const cc_uint8_t* plaintext, 
-	cc_uint32_t plainlen,
-	cc_uint32_t* nr_unpadblock, 
-	cc_uint8_t*  lastblock
+	const uint8_t* plaintext, 
+	uint32_t plainlen,
+	uint32_t* nr_unpadblock, 
+	uint8_t*  lastblock
 )
 {
 	BLOCKCIPHER* self  = _self;
-	cc_uint8_t  blocksize = self->blocksize;
-	cc_uint32_t nr_block  = 0;
-	cc_uint8_t  nr_unpadbyte = 0;
-	cc_uint8_t  padcontent;
+	uint8_t  blocksize = self->blocksize;
+	uint32_t nr_block  = 0;
+	uint8_t  nr_unpadbyte = 0;
+	uint8_t  padcontent;
 
 	memset(lastblock, 0, blocksize);
 
@@ -129,16 +129,16 @@ static int blockcipher_pad_pkcs7
 static int blockcipher_unpad_pkcs7
 (
 	void *_self, 
-	const cc_uint8_t* plaintext, 
-	cc_uint32_t plainlen, 
-	cc_uint32_t* nr_unpadblock, 
-	cc_uint8_t* nr_unpadbyte
+	const uint8_t* plaintext, 
+	uint32_t plainlen, 
+	uint32_t* nr_unpadblock, 
+	uint8_t* nr_unpadbyte
 )
 {
 	BLOCKCIPHER* self  = _self;
-	cc_uint8_t  blocksize  = self->blocksize;
-	cc_uint8_t  padcontent = 0;
-	cc_uint32_t nr_block   = 0;
+	uint8_t  blocksize  = self->blocksize;
+	uint8_t  padcontent = 0;
+	uint32_t nr_block   = 0;
 
 	nr_block = plainlen / blocksize;
 
@@ -174,9 +174,9 @@ static struct blockcipher_pad_operations* blockcipher_pad_operations_table[] =
 	blockcipher mode
 */
 
-static int blockcipher_xor(cc_uint8_t* dest, cc_uint8_t* xor, const cc_uint8_t* src, cc_uint8_t size)
+static int blockcipher_xor(uint8_t* dest, uint8_t* xor, const uint8_t* src, uint8_t size)
 {
-	cc_uint8_t i;
+	uint8_t i;
 
 	if (NULL == xor)
 	{
@@ -194,7 +194,7 @@ static int blockcipher_xor(cc_uint8_t* dest, cc_uint8_t* xor, const cc_uint8_t* 
 	return 0;
 }
 
-static int blockcipher_proc_block(void* _self, const cc_uint8_t* inblock, cc_uint8_t* outblock)
+static int blockcipher_proc_block(void* _self, const uint8_t* inblock, uint8_t* outblock)
 {
 	BLOCKCIPHER* self = _self;
 	(((BLOCKCIPHERvtbl*)(((OBJECT*)(self->object))->vptr))->ProcessBlock)((void*)self, inblock, outblock);
@@ -202,15 +202,15 @@ static int blockcipher_proc_block(void* _self, const cc_uint8_t* inblock, cc_uin
 	return 0;
 }
 
-static int blockcipher_enc_ECB(void *_self, const cc_uint8_t* plaintext, cc_uint32_t plainlen, cc_uint8_t* ciphertext, cc_uint32_t* cipherlen)
+static int blockcipher_enc_ECB(void *_self, const uint8_t* plaintext, uint32_t plainlen, uint8_t* ciphertext, uint32_t* cipherlen)
 {
 	BLOCKCIPHER* self = _self;
-	cc_uint8_t  blocksize = self->blocksize;
-	cc_uint32_t unpad_nr  = 0;
-	cc_uint8_t* block_last;	
-	cc_uint8_t  i;
+	uint8_t  blocksize = self->blocksize;
+	uint32_t unpad_nr  = 0;
+	uint8_t* block_last;	
+	uint8_t  i;
 
- 	block_last = (cc_uint8_t*)malloc(blocksize);
+ 	block_last = (uint8_t*)malloc(blocksize);
 
  	memset(block_last, 0, blocksize);
 	
@@ -229,14 +229,14 @@ static int blockcipher_enc_ECB(void *_self, const cc_uint8_t* plaintext, cc_uint
 	return 0;
 }
 
-static int blockcipher_dec_ECB(void *_self, const cc_uint8_t* ciphertext, cc_uint32_t cipherlen, cc_uint8_t* plaintext, cc_uint32_t* plainlen)
+static int blockcipher_dec_ECB(void *_self, const uint8_t* ciphertext, uint32_t cipherlen, uint8_t* plaintext, uint32_t* plainlen)
 {
 	BLOCKCIPHER* self = _self;
-	cc_uint8_t  blocksize = self->blocksize;
-	cc_uint32_t nr_block  = cipherlen / blocksize;
-	cc_uint32_t nr_unpadblock;
-	cc_uint8_t  nr_unpadbyte;
-	cc_uint8_t  i;
+	uint8_t  blocksize = self->blocksize;
+	uint32_t nr_block  = cipherlen / blocksize;
+	uint32_t nr_unpadblock;
+	uint8_t  nr_unpadbyte;
+	uint8_t  i;
 
 	for (i = 0; i < nr_block; i++)
 	{	
@@ -250,20 +250,20 @@ static int blockcipher_dec_ECB(void *_self, const cc_uint8_t* ciphertext, cc_uin
 	return 0;
 }
 
-static int blockcipher_enc_CBC(void *_self, const cc_uint8_t* plaintext, cc_uint32_t plainlen, cc_uint8_t* ciphertext, cc_uint32_t* cipherlen)
+static int blockcipher_enc_CBC(void *_self, const uint8_t* plaintext, uint32_t plainlen, uint8_t* ciphertext, uint32_t* cipherlen)
 {
 	BLOCKCIPHER* self = _self;
-	cc_uint8_t  blocksize = self->blocksize;
-	cc_uint32_t unpad_nr  = 0;
-	cc_uint8_t* block_in;
-	cc_uint8_t* block_out;
-	cc_uint8_t* block_last;
+	uint8_t  blocksize = self->blocksize;
+	uint32_t unpad_nr  = 0;
+	uint8_t* block_in;
+	uint8_t* block_out;
+	uint8_t* block_last;
 	
-	cc_uint8_t  i;
+	uint8_t  i;
 
-	block_in  = (cc_uint8_t*)malloc(blocksize);
- 	block_out = (cc_uint8_t*)malloc(blocksize);
- 	block_last = (cc_uint8_t*)malloc(blocksize);
+	block_in  = (uint8_t*)malloc(blocksize);
+ 	block_out = (uint8_t*)malloc(blocksize);
+ 	block_last = (uint8_t*)malloc(blocksize);
 
  	memset(block_in, 0, blocksize);
  	memset(block_out, 0, blocksize);
@@ -299,21 +299,21 @@ static int blockcipher_enc_CBC(void *_self, const cc_uint8_t* plaintext, cc_uint
 	return 0;
 }
 
-static int blockcipher_dec_CBC(void *_self, const cc_uint8_t* ciphertext, cc_uint32_t cipherlen, cc_uint8_t* plaintext, cc_uint32_t* plainlen)
+static int blockcipher_dec_CBC(void *_self, const uint8_t* ciphertext, uint32_t cipherlen, uint8_t* plaintext, uint32_t* plainlen)
 {
 	BLOCKCIPHER* self = _self;
-	cc_uint8_t  blocksize = self->blocksize;
-	cc_uint32_t nr_block  = cipherlen / blocksize;
-	cc_uint32_t nr_unpadblock;
-	cc_uint8_t  nr_unpadbyte;
-	cc_uint8_t* block_in;
-	cc_uint8_t* block_out;
-	cc_uint8_t* block_xor;
-	cc_uint8_t  i;
+	uint8_t  blocksize = self->blocksize;
+	uint32_t nr_block  = cipherlen / blocksize;
+	uint32_t nr_unpadblock;
+	uint8_t  nr_unpadbyte;
+	uint8_t* block_in;
+	uint8_t* block_out;
+	uint8_t* block_xor;
+	uint8_t  i;
 
-	block_in  = (cc_uint8_t*)malloc(blocksize);
- 	block_out = (cc_uint8_t*)malloc(blocksize);
- 	block_xor = (cc_uint8_t*)malloc(blocksize);
+	block_in  = (uint8_t*)malloc(blocksize);
+ 	block_out = (uint8_t*)malloc(blocksize);
+ 	block_xor = (uint8_t*)malloc(blocksize);
 
  	memset(block_in, 0, blocksize);
  	memset(block_out, 0, blocksize);
@@ -418,7 +418,7 @@ int BlockCipher_SetMode(void* _self, enum blockcipher_mode_e mode)
 	self->mode_ops = blockcipher_mode_operations_table[mode]; 
 }
 
-int BlockCipher_SetIV(void* _self, cc_uint8_t* iv, cc_uint8_t iv_len)
+int BlockCipher_SetIV(void* _self, uint8_t* iv, uint8_t iv_len)
 {
 	BLOCKCIPHER* self = _self;
 
@@ -427,7 +427,7 @@ int BlockCipher_SetIV(void* _self, cc_uint8_t* iv, cc_uint8_t iv_len)
 		iv_len = self->blocksize;
 	}
 
-	cc_uint8_t* mp = (cc_uint8_t*)malloc(iv_len);
+	uint8_t* mp = (uint8_t*)malloc(iv_len);
 
 	memcpy(mp, iv, iv_len);
 
@@ -448,10 +448,10 @@ int BlockCipher_SetPad(void* _self, enum blockcipher_pad_e pad)
 int BlockCipher_Encryption
 (
 	void* _self, 
-	const cc_uint8_t* plaintext, 
-	cc_uint32_t plainlen, 
-	cc_uint8_t*  ciphertext,
-	cc_uint32_t* cipherlen
+	const uint8_t* plaintext, 
+	uint32_t plainlen, 
+	uint8_t*  ciphertext,
+	uint32_t* cipherlen
 )
 {
 	BLOCKCIPHER* self = _self;	
@@ -467,10 +467,10 @@ int BlockCipher_Encryption
 int BlockCipher_Decryption
 (
 	void* _self, 
-	const cc_uint8_t* ciphertext, 
-	cc_uint32_t cipherlen, 
-	cc_uint8_t* plaintext, 
-	cc_uint32_t* plainlen
+	const uint8_t* ciphertext, 
+	uint32_t cipherlen, 
+	uint8_t* plaintext, 
+	uint32_t* plainlen
 )
 {
 	BLOCKCIPHER* self = _self;	

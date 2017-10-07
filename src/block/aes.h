@@ -35,8 +35,8 @@ extern const void* Aes;
 typedef struct{
 	BLOCKCIPHER super;
 	enum aes_type_e type;
-	cc_uint8_t  key[AES256_KEYLEN];              /* User Key */
-	cc_uint32_t roundkey[AES256_ROUND_NR * 4];   /* Round Key*/
+	uint8_t  key[AES256_KEYLEN];              /* User Key */
+	uint32_t roundkey[AES256_ROUND_NR * 4];   /* Round Key*/
 }AES;
 
 

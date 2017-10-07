@@ -11,8 +11,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
-#include "../base/basetype.h"
 #include "../base/object.h"
 #include "blockcipher.h"
 #include "des.h"
@@ -29,11 +29,11 @@ static void* rawdes_dtor(void* _self)
 	return _self;
 }
 
-static void rawdes_initial_permutation(cc_uint32_t* text)
+static void rawdes_initial_permutation(uint32_t* text)
 {
-	cc_uint32_t left;
-	cc_uint32_t right;
-	cc_uint32_t work;
+	uint32_t left;
+	uint32_t right;
+	uint32_t work;
 
 	left  = text[1];
 	right = text[0]; 
@@ -62,11 +62,11 @@ static void rawdes_initial_permutation(cc_uint32_t* text)
 	text[0] = right;
 }
 
-static void rawdes_final_permutation(cc_uint32_t* text)
+static void rawdes_final_permutation(uint32_t* text)
 {
-	cc_uint32_t left;
-	cc_uint32_t right;
-	cc_uint32_t work;
+	uint32_t left;
+	uint32_t right;
+	uint32_t work;
 
 	left  = text[1];
 	right = text[0]; 
@@ -103,15 +103,15 @@ static void rawdes_final_permutation(cc_uint32_t* text)
 	text[0] = right;
 }
 
-static void rawdes_docryption(void* _self, enum blockcipher_dir_e dir, cc_uint32_t *text)
+static void rawdes_docryption(void* _self, enum blockcipher_dir_e dir, uint32_t *text)
 {	
 	int round = 0;
 	int round_start = 0;
 	int round_count = 0; 
-	cc_uint8_t temp[8];
-	cc_uint32_t l,_l,r,_r;
+	uint8_t temp[8];
+	uint32_t l,_l,r,_r;
 	RAW_DES* self = (RAW_DES*)_self;
-	cc_uint8_t *kptr = self->roundkey;
+	uint8_t *kptr = self->roundkey;
 
 	l = text[1];
 	r = text[0];
@@ -130,7 +130,7 @@ static void rawdes_docryption(void* _self, enum blockcipher_dir_e dir, cc_uint32
 		_r = r;
 		_l = l;
 
-		cc_uint32_t r_ex[2] = {0, 0};
+		uint32_t r_ex[2] = {0, 0};
  
 		r_ex[0] = ((r & 0x0000000F) << 1)  | ((r & 0x80000000) >> 31) | ((r & 0x00000010) << 1) |
 		          ((r & 0x000000F0) << 5)  | ((r & 0x00000008) << 5)  | ((r & 0x00000100) << 5) |
@@ -188,10 +188,10 @@ static void rawdes_docryption(void* _self, enum blockcipher_dir_e dir, cc_uint32
 	text[0] = l;
 }
 
-static int rawdes_calc_roundkey(RAW_DES* self, cc_uint32_t left, cc_uint32_t right, cc_uint8_t round)
+static int rawdes_calc_roundkey(RAW_DES* self, uint32_t left, uint32_t right, uint8_t round)
 {
-	cc_uint32_t l = 0;
-	cc_uint32_t r = 0;
+	uint32_t l = 0;
+	uint32_t r = 0;
 	int idx;
 
 	/* shift left example
@@ -206,10 +206,10 @@ static int rawdes_calc_roundkey(RAW_DES* self, cc_uint32_t left, cc_uint32_t rig
 	/* Compression box */    
 	for (idx = 0; idx < 48; idx++)
 	{
-		cc_uint32_t *src;
-		cc_uint32_t *dest;
-		cc_uint8_t srcbit;
-		cc_uint8_t destbit;
+		uint32_t *src;
+		uint32_t *dest;
+		uint8_t srcbit;
+		uint8_t destbit;
 
 		srcbit = DES_KeyCompression[idx] - 1; 
 		if (idx < 24)
@@ -236,27 +236,27 @@ static int rawdes_calc_roundkey(RAW_DES* self, cc_uint32_t left, cc_uint32_t rig
 		*dest |= ((*src & (0x08000000 >> srcbit)) ? (0x00800000 >> destbit) : 0); 
 	}   
 
-	self->roundkey[round * 8 + 7] = (cc_uint8_t)((l & 0x00FC0000) >> 18);
-	self->roundkey[round * 8 + 6] = (cc_uint8_t)((l & 0x0003F000) >> 12);
-	self->roundkey[round * 8 + 5] = (cc_uint8_t)((l & 0x00000FC0) >>  6);
-	self->roundkey[round * 8 + 4] = (cc_uint8_t)((l & 0x0000003F));
+	self->roundkey[round * 8 + 7] = (uint8_t)((l & 0x00FC0000) >> 18);
+	self->roundkey[round * 8 + 6] = (uint8_t)((l & 0x0003F000) >> 12);
+	self->roundkey[round * 8 + 5] = (uint8_t)((l & 0x00000FC0) >>  6);
+	self->roundkey[round * 8 + 4] = (uint8_t)((l & 0x0000003F));
 
-	self->roundkey[round * 8 + 3] = (cc_uint8_t)((r & 0x00FC0000) >> 18);
-	self->roundkey[round * 8 + 2] = (cc_uint8_t)((r & 0x0003F000) >> 12);
-	self->roundkey[round * 8 + 1] = (cc_uint8_t)((r & 0x00000FC0) >>  6);
-	self->roundkey[round * 8 + 0] = (cc_uint8_t)((r & 0x0000003F));
+	self->roundkey[round * 8 + 3] = (uint8_t)((r & 0x00FC0000) >> 18);
+	self->roundkey[round * 8 + 2] = (uint8_t)((r & 0x0003F000) >> 12);
+	self->roundkey[round * 8 + 1] = (uint8_t)((r & 0x00000FC0) >>  6);
+	self->roundkey[round * 8 + 0] = (uint8_t)((r & 0x0000003F));
 
 }	
 
 
 static int rawdes_setkey(RAW_DES* self, const char* userkey)
 {
-	cc_uint32_t left  = 0;    
-	cc_uint32_t right = 0;
-	cc_uint8_t bitshift  = 0;
-	cc_uint8_t byteshift = 0;
-	cc_uint8_t bytepos   = 0;
-	cc_uint8_t round = 0;
+	uint32_t left  = 0;    
+	uint32_t right = 0;
+	uint8_t bitshift  = 0;
+	uint8_t byteshift = 0;
+	uint8_t bytepos   = 0;
+	uint8_t round = 0;
 	int idx = 0;
 
 	if (strlen(userkey) < DES_KEYLENGTH_BYTE)
@@ -297,13 +297,13 @@ static int rawdes_setkey(RAW_DES* self, const char* userkey)
 /* inBlock = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38}*/
 /* text[1] = 0x31323334  */
 /* text[0] = 0x35363738  */
-static void rawdes_getblock(cc_uint32_t *text, const cc_uint8_t* inblock)
+static void rawdes_getblock(uint32_t *text, const uint8_t* inblock)
 {
 	text[1] = (inblock[0] << 24) | (inblock[1] << 16) | (inblock[2] << 8) | (inblock[3]);   
 	text[0] = (inblock[4] << 24) | (inblock[5] << 16) | (inblock[6] << 8) | (inblock[7]);   
 }
 
-static void rawdes_putblock(cc_uint32_t *text, cc_uint8_t* outblock)
+static void rawdes_putblock(uint32_t *text, uint8_t* outblock)
 {
 	outblock[0] = (text[1] & 0xFF000000) >> 24;
 	outblock[1] = (text[1] & 0x00FF0000) >> 16;
@@ -352,7 +352,7 @@ static void* des_dtor(void* _self)
 }
 
 
-static int des_setkey(void* _self, const cc_uint8_t* userkey)
+static int des_setkey(void* _self, const uint8_t* userkey)
 {
 	DES* self = (DES*)_self;
 
@@ -363,12 +363,12 @@ static int des_setkey(void* _self, const cc_uint8_t* userkey)
 
 /* inblock  8 byte */
 /* outblock 8 byte */
-static int des_processblock(void* _self, const cc_uint8_t* inblock, cc_uint8_t *outblock)
+static int des_processblock(void* _self, const uint8_t* inblock, uint8_t *outblock)
 {
 	DES* self = (DES*)_self;
 
 	enum blockcipher_dir_e dir;
-	cc_uint32_t text[2];
+	uint32_t text[2];
 
 	dir = ((BLOCKCIPHER*)self)->dir;
 
@@ -436,7 +436,7 @@ static void* des_3des_dtor(void* _self)
 	return self;
 }
 
-static int des_3des_setkey(void* _self, const cc_uint8_t* userkey)
+static int des_3des_setkey(void* _self, const uint8_t* userkey)
 {
 	DES_3DES* self = (DES_3DES*)_self;
 
@@ -447,10 +447,10 @@ static int des_3des_setkey(void* _self, const cc_uint8_t* userkey)
 	return 0;
 }
 
-static int des_3des_processblock(void* _self, const cc_uint8_t* inblock, cc_uint8_t *outblock)
+static int des_3des_processblock(void* _self, const uint8_t* inblock, uint8_t *outblock)
 {
 	enum blockcipher_dir_e dir;
-	cc_uint32_t text[2];
+	uint32_t text[2];
 	DES_3DES* self = (DES_3DES*)_self;
 
 	dir = ((BLOCKCIPHER*)self)->dir;
