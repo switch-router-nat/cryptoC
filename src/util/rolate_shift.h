@@ -9,6 +9,9 @@
 
 
 uint32_t Rotl32(uint32_t word, uint8_t l);
+uint32_t Rotr32(uint32_t word, uint8_t l);
+uint64_t Rotl64(uint64_t word, uint8_t l);
+uint64_t Rotr64(uint64_t word, uint8_t l);
 
 
 #endif

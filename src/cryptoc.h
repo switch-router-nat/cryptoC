@@ -15,5 +15,6 @@
 #include "block/des.h"
 #include "hash/sha.h"
 #include "hash/sha1.h"
+#include "hash/sha512.h"
 
 #endif
