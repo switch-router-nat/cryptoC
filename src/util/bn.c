@@ -176,7 +176,7 @@ void dump(char* string, b_uint32_t *a)
 
 /** get the number of valid bit(start with non-zero bit)  
 */
-int b_valid_bit(uint32_t a, int* bitbegin)
+int b_valid_bit(uint32_t a, int* topbit)
 {
 	int i;
 
@@ -188,7 +188,7 @@ int b_valid_bit(uint32_t a, int* bitbegin)
 		}
 	}
 
-	*bitbegin = i;
+	*topbit = i;
 	return (32-i);
 }
 
@@ -917,17 +917,27 @@ void b_div(b_uint32_t* de, b_uint32_t* di, b_uint32_t* q, b_uint32_t* r, b_ctx_t
 	{
 		while(b_cmp(r, di) >= 0)
 		{
-			b_sub(r, di, r);
-			b_add2(q, 0x00000001, 0);
+			int s = 0;
+
+			s = b_calcshiftbit(r->data[r->top], mdi);
+			b_mov(tmp, di);
+			if (s == 0)
+			{
+				b_add2(q, 0x00000001, vr - vdi);
+			}
+			else if (s < 0)
+			{
+				b_leftshiftbit(tmp, -s, tmp);
+				b_add2(q, 0x00000001 << -s, 0);
+			}			
+			b_sub(r, tmp, r);
 		}
 	}
-
 
 	b_ctx_load(ctx, &bkp);
 
 	return;
 }
-
 
 /*****************************************************/
 int is_prime(b_uint32_t* p, int security, b_ctx_t* ctx)
