@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 
@@ -18,6 +19,13 @@
 int main()
 {
 	b_uint32_t b_x,b_y;
+	FILE* fp_prikey = NULL;
+	FILE* fp_pubkey = NULL;
+	uint32_t filesize;
+	uint8_t* filebuf;
+	uint8_t base64buf[1024];
+	uint32_t base64size;
+	uint32_t size;
 
 	uint32_t x[32] = {0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,
 					  0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,

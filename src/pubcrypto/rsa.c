@@ -286,8 +286,6 @@ static void rsa_gen_pubkey(RSA* self)
 	rsa_fill_elementdata(pubkey, i, self->e, e_tlsize, e_vsize, 0);
 	i = i + e_tlsize + e_vsize;
 
-	printf("\nrsa_gen_pubkey i = %d, total_size = %d", i, total_size);
-
 	self->pubkey = pubkey;
 	self->pubkeysize = total_size;
 
@@ -299,7 +297,7 @@ static void rsa_gen_pubkey(RSA* self)
 	}
 	printf("-----------\n");
 	*/
-	
+
 	return;
 }
 
@@ -543,6 +541,9 @@ int rsa_gen_pubkeypem(void* _self, char* filename)
 {
 	RSA* self = (RSA*)_self;
 	FILE* fp = NULL;
+	uint8_t base64str[128];
+	uint32_t base64strsize;
+	uint32_t codedsize = 0;
 
 	if  (!self->ready)
 	{
@@ -555,7 +556,26 @@ int rsa_gen_pubkeypem(void* _self, char* filename)
 		return -1;
 	}
 
-	fwrite(self->pubkey, self->pubkeysize, 1, fp);
+	fputs("-----BEGIN RSA PUBLIC KEY-----\n", fp);
+
+	while ((self->pubkeysize - codedsize) >= 48)
+	{
+		base64strsize = cc_base64_encode(self->pubkey + codedsize, 48, base64str);
+		base64str[base64strsize] = '\n';
+		base64str[base64strsize + 1] = '\0';
+		codedsize += 48;
+		fputs(base64str, fp);
+	}
+	
+	if ((self->pubkeysize - codedsize) > 0)
+	{
+		base64strsize = cc_base64_encode(self->pubkey + codedsize, self->pubkeysize - codedsize, base64str);
+		base64str[base64strsize] = '\n';
+		base64str[base64strsize + 1] = '\0';
+		fputs(base64str, fp);		
+	}
+
+	fputs("-----END RSA PUBLIC KEY-----\n", fp);
 
 	fclose(fp);
 
@@ -566,6 +586,9 @@ int rsa_gen_prikeypem(void* _self, char* filename)
 {
 	RSA* self = (RSA*)_self;
 	FILE* fp = NULL;
+	uint8_t base64str[128];
+	uint32_t base64strsize;
+	uint32_t codedsize = 0;
 
 	if  (!self->ready)
 	{
@@ -578,7 +601,26 @@ int rsa_gen_prikeypem(void* _self, char* filename)
 		return -1;
 	}
 
-	fwrite(self->prikey, self->prikeysize, 1, fp);
+	fputs("-----BEGIN RSA PRIVATE KEY-----\n", fp);
+
+	while ((self->prikeysize - codedsize) >= 48)
+	{
+		base64strsize = cc_base64_encode(self->prikey + codedsize, 48, base64str);
+		base64str[base64strsize] = '\n';
+		base64str[base64strsize + 1] = '\0';
+		codedsize += 48;
+		fputs(base64str, fp);
+	}
+	
+	if ((self->prikeysize - codedsize) > 0)
+	{
+		base64strsize = cc_base64_encode(self->prikey + codedsize, self->prikeysize - codedsize, base64str);
+		base64str[base64strsize] = '\n';
+		base64str[base64strsize + 1] = '\0';
+		fputs(base64str, fp);		
+	}
+
+	fputs("-----END RSA PRIVATE KEY-----\n", fp);
 
 	fclose(fp);
 
