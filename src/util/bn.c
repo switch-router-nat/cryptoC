@@ -112,6 +112,7 @@ void b_destroy(b_uint32_t* a)
 void b_zero(b_uint32_t *a)
 {
 	memset((void*)(a->data), 0, (a->len)*sizeof(uint32_t));
+	a->neg = 0;
 }
 
 void b_one(b_uint32_t* a)
@@ -289,7 +290,8 @@ void b_add2(b_uint32_t *a, uint32_t b, int l)
 }
 
 /* c = a + b */
-void b_add(b_uint32_t *a, b_uint32_t *b, b_uint32_t *c)
+/* return true if overflow */
+int b_add(b_uint32_t *a, b_uint32_t *b, b_uint32_t *c)
 {
 	uint64_t tmp;
 	int len_a = a->len;
@@ -312,7 +314,7 @@ void b_add(b_uint32_t *a, b_uint32_t *b, b_uint32_t *c)
 
 	if (len_c == 0)
 	{
-		return;
+		return !!(carry);
 	}
 
 	if (len_a)
@@ -344,7 +346,7 @@ void b_add(b_uint32_t *a, b_uint32_t *b, b_uint32_t *c)
 		}
 	}
 
-	return;
+	return !!(carry);
 } 
 
 
@@ -779,6 +781,40 @@ void b_mod(b_uint32_t* a, b_uint32_t* n, b_uint32_t* c, b_ctx_t* ctx)
 	return;
 }
 
+/* c = a + b mod n */
+void b_addmod(b_uint32_t *a, b_uint32_t *b, b_uint32_t *n, b_uint32_t *c, b_ctx_t* ctx)
+{
+	b_uint32_t* _a;	
+	b_uint32_t* _b;
+	b_uint32_t* tmp;
+	int overflow;
+	b_ctx_bkp_t bkp;
+	b_ctx_save(ctx, &bkp);
+
+	b_zero(c);
+
+	_a = b_ctx_alloc(ctx, n->len);
+	_b = b_ctx_alloc(ctx, n->len);
+	tmp = b_ctx_alloc(ctx, n->len);
+
+	b_mod(a, n, _a, ctx);
+	b_mod(b, n, _b, ctx);
+
+	overflow = b_add(_a, _b, tmp);
+	if (overflow)
+	{
+		b_sub(n, _a, tmp);
+		b_sub(_b, tmp, c);
+	}
+	else
+	{
+		b_mod(tmp, n, c, ctx);
+	}
+
+	b_ctx_load(ctx, &bkp);
+
+	return;
+}
 
 /* c = a * b mod n  */
 void b_mulmod(b_uint32_t *a, b_uint32_t *b, b_uint32_t *n, b_uint32_t *c, b_ctx_t* ctx)
@@ -795,7 +831,7 @@ void b_mulmod(b_uint32_t *a, b_uint32_t *b, b_uint32_t *n, b_uint32_t *c, b_ctx_
 	b_mod(a, n, _a, ctx);
 	b_mod(b, n, _b, ctx);
 
-	pd = b_ctx_alloc(ctx, a->len<<1);	
+	pd = b_ctx_alloc(ctx, n->len<<1);	
 	b_zero(pd);
 
 	b_mul(_a, _b, pd);
@@ -1136,7 +1172,7 @@ void euclidean_algorithm(b_uint32_t* r0, b_uint32_t* r1, b_uint32_t* gcd, b_ctx_
 
     r0, r1 given, we calculate gcd
 
-    if gcd == 1, then t is the inverse or r1 mod r0
+    if gcd == 1, then t is the inverse of r1 mod r0
 */
 void ex_euclidean_algorithm(b_uint32_t* r0, b_uint32_t* r1, b_uint32_t* gcd, b_uint32_t* t, b_ctx_t* ctx)
 {
@@ -1169,7 +1205,8 @@ void ex_euclidean_algorithm(b_uint32_t* r0, b_uint32_t* r1, b_uint32_t* gcd, b_u
 
 	b_zero(cor1[0]);   
 	b_one(cor1[1]);   
-	
+	b_zero(cor1[2]); 
+
 	do {
 		b_div(r[0], r[1], q, r[2], ctx); 
 
@@ -1186,7 +1223,16 @@ void ex_euclidean_algorithm(b_uint32_t* r0, b_uint32_t* r1, b_uint32_t* gcd, b_u
 	}while(b_cmp2(r[1],0));
 
 	b_mov(gcd, r[0]);
-	b_mov(t, cor1[0]);
+
+	if (cor1[0]->neg)
+	{
+		b_add_ex(cor1[0], r0, t);
+	}
+	else
+	{
+		b_mov(t, cor1[0]);
+	}
+	
 
 	b_ctx_load(ctx, &bkp);
 

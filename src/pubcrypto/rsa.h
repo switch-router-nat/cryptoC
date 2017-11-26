@@ -29,6 +29,7 @@ typedef struct{
 	b_uint32_t* cq;		 /* 512 bit p^(-1) mod q */
 	b_uint32_t* qcp;     /* 1024bit, q*cp */
 	b_uint32_t* pcq;     /* 1024bit, p*cq */
+	int ready;          /* all varible is calculated */
 	uint8_t* pubkey;
 	uint32_t pubkeysize;
 	uint8_t* prikey;
@@ -36,6 +37,8 @@ typedef struct{
 }RSA;
 
 void rsa_key_generate(void* _self);
+int rsa_gen_pubkeypem(void* _self, char* filename);
+int rsa_gen_prikeypem(void* _self, char* filename);
 int rsa_encryption(void* _self, b_uint32_t* x, b_uint32_t* y);
 int rsa_decryption(void* _self, b_uint32_t* y, b_uint32_t* x);
 

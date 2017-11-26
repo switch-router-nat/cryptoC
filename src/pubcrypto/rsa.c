@@ -15,6 +15,7 @@
 
 #include "../base/object.h"
 #include "../util/bn.h"
+#include "../util/base64.h"
 #include "rsa.h"
 
 static  uint32_t _rsa_e_2pow16_1[32] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
@@ -45,6 +46,8 @@ static void* rsa_ctor(void *_self, va_list *app)
 	self->pubkeysize = 0;
 	self->prikey = NULL;
 	self->prikeysize = 0;
+
+	self->ready = 0;
 
 	return _self;
 }
@@ -112,19 +115,29 @@ static void rsa_gen_d(RSA* self, b_uint32_t* fn, b_ctx_t* ctx)
 
 
 /*
- * 
- * 
+ * @buffer: destination buffer
+ * @i: start position to fill
+ * @tlsize: element tl size
+ * @vsize:  element v size
 */
-static void rsa_fill_elementdata(uint8_t* buffer, uint32_t i, b_uint32_t* bn, uint8_t size, uint8_t extralen)
+static void rsa_fill_elementdata(uint8_t* buffer, uint32_t i, b_uint32_t* bn, uint8_t tlsize, uint8_t vsize, int plusminusbit)
 {
 	buffer[i++] = 0x02;
-	if (extralen)
+	
+	if (tlsize == 3)
 	{
 		buffer[i++] = 0x81;
 	}
-	buffer[i++] = size;
+	
+	buffer[i++] = vsize;
+	
+	if (plusminusbit)
+	{
+		buffer[i++] = bn->neg ? 0x01:0x00;
+		vsize--;
+	}
 
-	switch (size % 4)
+	switch (vsize % 4)
 	{
 		case 0:
 		{
@@ -148,7 +161,6 @@ static void rsa_fill_elementdata(uint8_t* buffer, uint32_t i, b_uint32_t* bn, ui
 	}
 	
 	int j;
-
 	
 	for (j = bn->top + 1;j < bn->len ;j++)
 	{
@@ -161,7 +173,11 @@ static void rsa_fill_elementdata(uint8_t* buffer, uint32_t i, b_uint32_t* bn, ui
 	return; 
 }
 
-static uint8_t rsa_calc_asn1byte(b_uint32_t* bn)
+/*
+ *  calculate element size 
+ *  @plusminusbit indicates if there is 1 byte for bn->neg
+ */
+static void rsa_calc_elementsize(b_uint32_t* bn, int plusminusbit, uint8_t* tlsize, uint8_t* vsize)
 {
 	int topbit;
 	b_valid_top(bn);
@@ -181,7 +197,24 @@ static uint8_t rsa_calc_asn1byte(b_uint32_t* bn)
 		len -= 1;
 	}
 
-	return len;
+	if (plusminusbit)
+	{
+		/* if plusminusbit is set, we need byte for plusminus   */
+		len ++;
+	}
+
+	*vsize = len;
+
+	if (len >= 128)
+	{
+		*tlsize = 3; /* t:1 byte   l:2 bytes */
+	}
+	else
+	{
+		*tlsize = 2; /* t:1 byte   l:1 bytes */
+	}
+
+	return;
 }
 
 static void rsa_gen_pubkey(RSA* self)
@@ -197,68 +230,76 @@ static void rsa_gen_pubkey(RSA* self)
 	 * 
 	*/
 	uint8_t* pubkey = NULL;
-	uint8_t n_byte, e_byte, element_total_byte;
-	uint32_t bufsize = 0;
+	uint32_t elements_size = 0;
+	uint8_t n_vsize, e_vsize;
+	uint8_t n_tlsize, e_tlsize;
+	uint32_t total_size = 0;
 	uint32_t i = 0;
-	uint8_t n_extralen = 0;      /* need an extra byte to identify n's len  */
-	uint8_t e_extralen = 0;      /* need an extra byte to identify e's len   */
-	uint8_t total_extralen = 0;  /* need an extra byte to identify total len */
 	
-	b_uint32_t* n = self->n;
-	n_byte = rsa_calc_asn1byte(n);
+	rsa_calc_elementsize(self->n, 1, &n_tlsize, &n_vsize);
+	rsa_calc_elementsize(self->e, 0, &e_tlsize, &e_vsize);
 
-	b_uint32_t* e = self->e;
-	e_byte = rsa_calc_asn1byte(e);
+	elements_size = n_tlsize + n_vsize + 
+					e_tlsize + e_vsize;
 
-	bufsize = 2 + n_byte + 2 + e_byte;  /* for each element, at least 2 bytes header */
-	if (n_byte > 128)
+	total_size = elements_size;			
+	if (elements_size >= 256)
 	{
-		n_extralen = 1;
-		bufsize++;
+		/* we need another 2 bytes for identity header */
+		total_size += 2;
 	}
-	if (e_byte > 128)
+	else if (elements_size >= 128)
 	{
-		e_extralen = 1;
-		bufsize++;
-	}
-
-	element_total_byte = bufsize;
-
-	if (bufsize > 128)
-	{
-		total_extralen = 1;
-		bufsize++;
+		/* we need another 1 byte for identity header */
+		total_size ++;
 	}
 
-	bufsize += 2;  /* identity header */
+	/* 2 byte identity header */
+	total_size += 2;  
 
-	/* fill the pubkey buffer:identity header */
-	pubkey = calloc(1, bufsize);
+	/********************* fill header **************************/
+	pubkey = calloc(1, total_size);
 	pubkey[i++] = 0x30;
-	if (total_extralen)
+	if (elements_size >= 256)
+	{
+		pubkey[i++] = 0x82;
+		pubkey[i++] = elements_size >> 8;
+		pubkey[i++] = elements_size & 0xff;
+	}
+	else if (elements_size >= 128)
 	{
 		pubkey[i++] = 0x81;
+		pubkey[i++] = elements_size;
 	}
-	pubkey[i++] = element_total_byte;
+	else
+	{
+		pubkey[i++] = elements_size;
+	}
+
+	/********************* fill elements **************************/
 
 	/* fill the pubkey buffer: n */
-	rsa_fill_elementdata(pubkey, i, self->n, n_byte, n_extralen);
-	i = i + 2 + n_byte + n_extralen;
+	rsa_fill_elementdata(pubkey, i, self->n, n_tlsize, n_vsize, 1);
+	i = i + n_tlsize + n_vsize;
 
 	/* fill the pubkey buffer: e */
-	rsa_fill_elementdata(pubkey, i, self->e, e_byte, e_extralen);
-	i = i + 2 + e_byte + e_extralen;
+	rsa_fill_elementdata(pubkey, i, self->e, e_tlsize, e_vsize, 0);
+	i = i + e_tlsize + e_vsize;
+
+	printf("\nrsa_gen_pubkey i = %d, total_size = %d", i, total_size);
 
 	self->pubkey = pubkey;
-	self->pubkeysize = bufsize;
+	self->pubkeysize = total_size;
 
+	/*
 	printf("pubkey:----------\n");
-	for (int j = 0; j < bufsize; ++j)
+	for (int j = 0; j < total_size; ++j)
 	{
 		printf("0x%x ",self->pubkey[j]);
 	}
 	printf("-----------\n");
-
+	*/
+	
 	return;
 }
 
@@ -277,71 +318,122 @@ static void rsa_gen_prikey(RSA* self)
      * exponent2          INTEGER,   ------ d mod (q-1)
      * coefficient        INTEGER,   ------- (inverse of q) mod p
      * otherPrimeInfos    OtherPrimeInfos   ------ OPTIONAL exist when Version=1 
-     }
+     }b
 	 *
 	*/
-	uint8_t* pubkey = NULL;
-	uint8_t n_byte, e_byte, element_total_byte;
-	uint32_t bufsize = 0;
+
+	uint8_t* prikey = NULL;
+	uint32_t elements_size = 0;
+	uint8_t n_tlsize, e_tlsize, d_tlsize, p_tlsize, q_tlsize, dp_tlsize, dq_tlsize, cp_tlsize;
+	uint8_t  n_vsize,  e_vsize,  d_vsize,  p_vsize,  q_vsize,  dp_vsize,  dq_vsize,  cp_vsize;
+	uint32_t total_size = 0;
 	uint32_t i = 0;
-	uint8_t n_extralen = 0;      /* need an extra byte to identify n's len  */
-	uint8_t e_extralen = 0;      /* need an extra byte to identify e's len   */
-	uint8_t total_extralen = 0;  /* need an extra byte to identify total len */
 	
-	b_uint32_t* n = self->n;
-	n_byte = rsa_calc_asn1byte(n);
+	rsa_calc_elementsize(self->n, 1, &n_tlsize, &n_vsize);
+	rsa_calc_elementsize(self->e, 0, &e_tlsize, &e_vsize);
+	rsa_calc_elementsize(self->d, 0, &d_tlsize, &d_vsize);
+	rsa_calc_elementsize(self->p, 1, &p_tlsize, &p_vsize);
+	rsa_calc_elementsize(self->q, 1, &q_tlsize, &q_vsize);
+	rsa_calc_elementsize(self->dp, 0, &dp_tlsize, &dp_vsize);
+	rsa_calc_elementsize(self->dq, 0, &dq_tlsize, &dq_vsize);
+	rsa_calc_elementsize(self->cp, 1, &cp_tlsize, &cp_vsize);
 
-	b_uint32_t* e = self->e;
-	e_byte = rsa_calc_asn1byte(e);
+	elements_size = n_tlsize + n_vsize + 
+					e_tlsize + e_vsize +
+					d_tlsize + d_vsize +
+					p_tlsize + p_vsize +
+					q_tlsize + q_vsize +
+					dp_tlsize + dp_vsize +
+					dq_tlsize + dq_vsize +
+					cp_tlsize + cp_vsize;
 
-	bufsize = 2 + n_byte + 2 + e_byte;  /* for each element, at least 2 bytes header */
-	if (n_byte > 128)
+	/* 3 bytes version */
+	elements_size += 3;
+
+	total_size = elements_size;			
+	if (elements_size >= 256)
 	{
-		n_extralen = 1;
-		bufsize++;
+		/* we need another 2 bytes for identity header */
+		total_size += 2;
 	}
-	if (e_byte > 128)
+	else if (elements_size >= 128)
 	{
-		e_extralen = 1;
-		bufsize++;
+		/* we need another 1 byte for identity header */
+		total_size ++;
 	}
 
-	element_total_byte = bufsize;
+	/* 2 byte identity header */
+	total_size += 2;  
 
-	if (bufsize > 128)
+	/********************* fill header **************************/
+	prikey = calloc(1, total_size);
+	prikey[i++] = 0x30;
+	if (elements_size >= 256)
 	{
-		total_extralen = 1;
-		bufsize++;
+		prikey[i++] = 0x82;
+		prikey[i++] = elements_size >> 8;
+		prikey[i++] = elements_size & 0xff;
 	}
-
-	bufsize += 2;  /* identity header */
-
-	/* fill the pubkey buffer:identity header */
-	pubkey = calloc(1, bufsize);
-	pubkey[i++] = 0x30;
-	if (total_extralen)
+	else if (elements_size >= 128)
 	{
-		pubkey[i++] = 0x81;
+		prikey[i++] = 0x81;
+		prikey[i++] = elements_size;
 	}
-	pubkey[i++] = element_total_byte;
+	else
+	{
+		prikey[i++] = elements_size;
+	}
+
+	/********************* fill elements **************************/
+
+	/* version = 0 */
+	prikey[i++] = 0x02;
+	prikey[i++] = 0x01;
+	prikey[i++] = 0x00;
 
 	/* fill the pubkey buffer: n */
-	rsa_fill_elementdata(pubkey, i, self->n, n_byte, n_extralen);
-	i = i + 2 + n_byte + n_extralen;
+	rsa_fill_elementdata(prikey, i, self->n, n_tlsize, n_vsize, 1);
+	i = i + n_tlsize + n_vsize;
 
 	/* fill the pubkey buffer: e */
-	rsa_fill_elementdata(pubkey, i, self->e, e_byte, e_extralen);
-	i = i + 2 + e_byte + e_extralen;
+	rsa_fill_elementdata(prikey, i, self->e, e_tlsize, e_vsize, 0);
+	i = i + e_tlsize + e_vsize;
 
-	self->pubkey = pubkey;
-	self->pubkeysize = bufsize;
+	/* fill the pubkey buffer: d */
+	rsa_fill_elementdata(prikey, i, self->d, d_tlsize, d_vsize, 0);
+	i = i + d_tlsize + d_vsize;
 
-	printf("pubkey:----------\n");
-	for (int j = 0; j < bufsize; ++j)
+	/* fill the pubkey buffer: p */
+	rsa_fill_elementdata(prikey, i, self->p, p_tlsize, p_vsize, 1);
+	i = i + p_tlsize + p_vsize;
+
+	/* fill the pubkey buffer: q */
+	rsa_fill_elementdata(prikey, i, self->q, q_tlsize, q_vsize, 1);
+	i = i + q_tlsize + q_vsize;
+
+	/* fill the pubkey buffer: dp */
+	rsa_fill_elementdata(prikey, i, self->dp, dp_tlsize, dp_vsize, 0);
+	i = i + dp_tlsize + dp_vsize;
+
+	/* fill the pubkey buffer: dp */
+	rsa_fill_elementdata(prikey, i, self->dq, dq_tlsize, dq_vsize, 0);
+	i = i + dq_tlsize + dq_vsize;
+
+	/* fill the pubkey buffer: cp */
+	rsa_fill_elementdata(prikey, i, self->cp, cp_tlsize, cp_vsize, 1);
+	i = i + cp_tlsize + cp_vsize;
+
+	self->prikey = prikey;
+	self->prikeysize = total_size;
+
+	/*
+	printf("prikey:----------\n");
+	for (int j = 0; j < total_size; ++j)
 	{
-		printf("0x%x ",self->pubkey[j]);
+		printf("0x%x ",self->prikey[j]);
 	}
 	printf("-----------\n");
+	*/
 
 	return;
 }
@@ -399,7 +491,7 @@ void rsa_key_generate(void* _self)
  		b_mod(self->p, self->q, tmp, &ctx);
 
 		/* cq = p^(-1) mod q = (p mod q)^(-1) mod q*/
- 		ex_euclidean_algorithm(tmp, self->q, gcd, self->cq, &ctx); 		
+ 		ex_euclidean_algorithm(self->q, tmp, gcd, self->cq, &ctx); 		
 	}
 	else
 	{
@@ -409,7 +501,7 @@ void rsa_key_generate(void* _self)
  		b_mod(self->q, self->p, tmp, &ctx);
 
 		/* cp = q^(-1) mod p = (q mod p)^(-1) mod p */
- 		ex_euclidean_algorithm(tmp, self->p, gcd, self->cp, &ctx); 		
+ 		ex_euclidean_algorithm(self->p, tmp, gcd, self->cp, &ctx); 		
 	}
 
 	/* qcp = q*cp */
@@ -418,17 +510,16 @@ void rsa_key_generate(void* _self)
 	/* pcq = p*cq */
 	b_mul(self->p, self->cq, self->pcq);
 
-	//rsa_gen_prikey(self);
+	rsa_gen_prikey(self);
 
 	rsa_gen_pubkey(self);
 
-	//dump("c = e*d mod fn", c);
+	self->ready = 1;
 
 	b_ctx_fini(&ctx);
 
 	return;
 }
-
 
 int rsa_encryption(void* _self, b_uint32_t* x, b_uint32_t* y)
 {
@@ -448,24 +539,102 @@ int rsa_encryption(void* _self, b_uint32_t* x, b_uint32_t* y)
 	return 0;
 }
 
-int rsa_decryption(void* _self, b_uint32_t* y, b_uint32_t* x)
+int rsa_gen_pubkeypem(void* _self, char* filename)
 {
 	RSA* self = (RSA*)_self;
-	b_ctx_t ctx;
-	b_ctx_init(&ctx, 16);
+	FILE* fp = NULL;
 
-	if (!self->e)
+	if  (!self->ready)
 	{
 		return -1;
 	}
 
-	b_expmod(y, self->d, self->n, x, &ctx);
+	fp = fopen(filename, "w");
+	if (fp == NULL)
+	{
+		return -1;
+	}
+
+	fwrite(self->pubkey, self->pubkeysize, 1, fp);
+
+	fclose(fp);
+
+	return 0;
+}
+
+int rsa_gen_prikeypem(void* _self, char* filename)
+{
+	RSA* self = (RSA*)_self;
+	FILE* fp = NULL;
+
+	if  (!self->ready)
+	{
+		return -1;
+	}
+
+	fp = fopen(filename, "w");
+	if (fp == NULL)
+	{
+		return -1;
+	}
+
+	fwrite(self->prikey, self->prikeysize, 1, fp);
+
+	fclose(fp);
+
+	return 0;
+}
+
+int rsa_decryption(void* _self, b_uint32_t* y, b_uint32_t* x)
+{
+	RSA* self = (RSA*)_self;
+	b_uint32_t* xp;
+	b_uint32_t* xq;
+	b_uint32_t* yp;
+	b_uint32_t* yq;
+	b_uint32_t* x1;
+	b_uint32_t* x2;
+
+	b_ctx_t ctx;
+	b_ctx_init(&ctx, 16);
+
+	if (0 == self->ready)
+	{
+		return -1;
+	}
+
+	xp = b_ctx_alloc(&ctx, 16);
+	xq = b_ctx_alloc(&ctx, 16);
+	yp = b_ctx_alloc(&ctx, 16);
+	yq = b_ctx_alloc(&ctx, 16);
+	x1 = b_ctx_alloc(&ctx, 32);
+	x2 = b_ctx_alloc(&ctx, 32);
+
+	/* yp = y mod p */
+	b_mod(y, self->p, yp, &ctx);
+
+	/* yq = y mod q */
+	b_mod(y, self->q, yq, &ctx);
+
+	/* xp = yp^dp mod p */
+	b_expmod(y, self->dp, self->p, xp, &ctx);
+
+	/* xq = yq^dq mod q */
+	b_expmod(y, self->dq, self->q, xq, &ctx);
+
+	/* x1 = [qcp] * xp mod n */
+	b_mulmod(self->qcp, xp, self->n, x1, &ctx);
+
+	/* x2 = [pcq] * xq mod n  */
+	b_mulmod(self->pcq, xq, self->n, x2, &ctx);
+
+	/* x = (x1 + x2) mod n */
+	b_addmod(x1, x2, self->n, x, &ctx);
 
 	b_ctx_fini(&ctx);
 
 	return 0;
 }
-
 
 static const OBJECT _Rsa = {
     sizeof(RSA),

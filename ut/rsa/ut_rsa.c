@@ -47,6 +47,9 @@ int main()
 		dump("ut x ", &b_x);
 	}
 
+	rsa_gen_pubkeypem(rsa, "pubkey.pem");
+	rsa_gen_prikeypem(rsa, "prikey.pem");
+
 	delete(rsa);
 
 	return 0;	
