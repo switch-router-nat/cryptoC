@@ -27,7 +27,7 @@ int main()
 	uint32_t base64size;
 	uint32_t size;
 
-	uint32_t x[32] = {0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,
+	uint32_t x[32] = {0x00000001, 0x12345678, 0xABABABAB, 0xFFFFFFFF,0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,
 					  0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,
 					  0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,
 					  0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF,0x11223344, 0x12345678, 0xABABABAB, 0xFFFFFFFF};
@@ -55,8 +55,8 @@ int main()
 		dump("ut x ", &b_x);
 	}
 
-	rsa_gen_pubkeypem(rsa, "pubkey.pem");
-	rsa_gen_prikeypem(rsa, "prikey.pem");
+	rsa_gen_pubkeypem(rsa, "pubkey.pem", RSA_FORMAT_PKCS8);
+	rsa_gen_prikeypem(rsa, "prikey.pem", RSA_FORMAT_PKCS8);
 
 	delete(rsa);
 

@@ -1060,13 +1060,19 @@ done:
 
 void b_random(b_uint32_t* a)
 {
+	static unsigned long seed = 0;
 	int len_a = a->len;
-	time_t t;
-	t = time(NULL);
+
+	if (seed == 0)
+	{
+		time_t t;
+		t = time(NULL);
+		seed = (unsigned long)t;
+	}
 
 	b_zero(a);
 
-	srand((unsigned long)t);
+	srand(seed);
 	for (int i = 0; i < len_a; ++i)
 	{
 		a->data[i] = rand() & 0xff;
@@ -1074,6 +1080,8 @@ void b_random(b_uint32_t* a)
 		a->data[i] |= (rand() & 0xff) << 16;
 		a->data[i] |= (rand() & 0xff) << 24;
 	}
+
+	seed = a->data[0];
 
 	return;
 }
@@ -1103,6 +1111,8 @@ void prime_random(b_uint32_t* p, b_ctx_t* ctx)
 	b_zero(rten);
 
 	b_random(p);
+	p->data[0] |= 0x80000000;
+
 	b_odd(p);
 
 	/* calc p%10 */
