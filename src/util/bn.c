@@ -14,6 +14,8 @@
 
 #include "bn.h"
 
+#define BN_MIN(a,b)  ((a)<(b)?(a):(b))
+#define BN_MAX(a,b)  ((a)<(b)?(b):(a))
 
 void b_ctx_init(b_ctx_t* ctx, int len)
 {
@@ -440,34 +442,131 @@ void b_sub(b_uint32_t *a, b_uint32_t *b, b_uint32_t *c)
 	return;
 }
 
-/* c = a * b */
-/* c->len must greater than a->len + b->len */
-void b_mul(b_uint32_t *a, b_uint32_t *b, b_uint32_t *c)
+
+#define COMBA_INIT                                  \
+{                                                   \
+    uint64_t r;                                      \
+ 
+#define COMBA_MULADDC                               \
+                                                    \
+    r = (uint64_t)(*px--) * (*py++) + c0;            \
+    c0 = (uint32_t)r;                               \
+    r = (uint64_t)c1 + (r >> 32);                   \
+    c1 = (uint32_t)r;                               \
+    c2 += (uint32_t)(r >> 32);                     \
+ 
+#define COMBA_STOP                                  \
+}
+
+/* z = x * y */
+/* z->len must greater than x->len + y->len */
+void b_mul(b_uint32_t *x, b_uint32_t *y, b_uint32_t *z)
 {
-	int len_a = a->len;
-	int len_b = b->len;
-	int len_c = c->len;
-	uint64_t t; 
+	uint32_t c0,c1,c2;
+	uint32_t* px,*py,*pz;
 
-	b_zero(c);
+	int nc, i,j,k,tx,ty;
+	int len_x, len_y, len_z;
 
-	for (int i = len_a-1; i >= 0; i--)
+	len_z = z->len;
+	len_x = x->len;
+	len_y = y->len;
+
+	b_zero(z);
+
+	c0 = 0;
+	c1 = 0;
+	c2 = 0;
+
+	pz = &z->data[len_z-1];
+
+	for (int i = len_z-1; i >= 0; i--)
 	{
-		for(int j = len_b-1; j>=0; j--)
-		{
-			t = (uint64_t)(a->data[i]) * (uint64_t)(b->data[j]);
+		ty = (i-len_x > 0)?(i-len_x):0;
+		tx = i-ty-1;
 
-			b_add2(c, (uint32_t)t, len_a + len_b - i - j - 2);
+		k = BN_MIN(len_y-ty, tx+1);
 
-			if (t >> 32)
-			{
-				b_add2(c, (uint32_t)(t >> 32), len_a + len_b - i - j - 1);
-			}
-		}
+	//	printf("%d,\n", k);
+
+		px = x->data + tx;
+		py = y->data + ty;
+
+		c0 = c1;
+		c1 = c2;
+		c2 = 0;
+
+		j = k;
+		 //Comba 32
+        for(; j >= 32; j -= 32)
+        {
+            COMBA_INIT
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+ 
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+ 
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+ 
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_STOP
+        }
+		 //Comba 16
+        for(; j >= 16; j -= 16)
+        {
+            COMBA_INIT
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+ 
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_STOP
+        }
+        //Comba 8
+        for(; j >= 8; j -= 8)
+        {
+            COMBA_INIT
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_STOP
+        }
+        //Comba 4
+        for(; j >= 4; j -= 4)
+        {
+            COMBA_INIT
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_MULADDC    COMBA_MULADDC
+            COMBA_STOP
+        }
+        //Comba 1
+        for(; j > 0; j--)
+        {
+            COMBA_INIT
+            COMBA_MULADDC
+            COMBA_STOP
+        }
+ 
+ 		*pz-- = c0;
 	}
 
-	c->neg = a->neg ^ b->neg;
-
+	z->neg = x->neg ^ y->neg;
 	return;
 }
 
@@ -1097,6 +1196,9 @@ void b_odd(b_uint32_t* a)
 	return;
 }
 
+/*
+  generate a random prime 
+*/
 void prime_random(b_uint32_t* p, b_ctx_t* ctx)
 {
 	b_uint32_t* ten;
