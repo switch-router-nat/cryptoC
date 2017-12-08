@@ -16,8 +16,9 @@
 #include "hash/sha.h"
 #include "hash/sha1.h"
 #include "hash/sha512.h"
-#include "util/bn.h"
+#include "bn/bn.h"
 #include "util/base64.h"
-#include "pubcrypto/rsa.h"
+#include "pubcrypto/rsa/rsa.h"
+#include "pubcrypto/ecc/ecc.h"
 
 #endif
