@@ -43,10 +43,7 @@ typedef struct{
 	ecc_curve_t* curve;
 }ECC;
 
-
-int ecc_validation(void* _self, void* _pt, b_ctx_t* ctx);
-int ecc_doubling(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, b_ctx_t* ctx);
-int ecc_addition(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, ECC_POINT* pt3, b_ctx_t* ctx);
+int ecc_multiplication(void* _self, b_uint32_t* d, void* _pt1, void* _pt2, b_ctx_t* ctx);
 
 #ifdef __cplusplus
 }

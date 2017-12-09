@@ -115,7 +115,7 @@ static void* ecc_dtor(void* _self)
 /*
    pt2 = pt1 + pt1;
 */
-int ecc_doubling(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, b_ctx_t* ctx)
+static int ecc_doubling(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, b_ctx_t* ctx)
 {
 	int rc = -1;
 	b_uint32_t* s;
@@ -164,27 +164,21 @@ int ecc_doubling(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, b_ctx_t* ctx)
 
 	/* t1 = s^2 mod p */
 	b_mulmod(s, s, prime, t1, ctx);
-	dump("t1        ", t1);
 
 	/* t2 = x1 + x1 mod p */
 	b_addmod(pt1->x, pt1->x, prime, t2, ctx);
-	dump("t2        ", t2);
 
 	/* x2 = s^2 - x1 - x2 mod p */
 	b_submod(t1, t2, prime, pt2->x, ctx);
-	dump("x2        ", pt2->x);
 
 	/* t1 = x1 - x2 mod p */
 	b_submod(pt1->x, pt2->x, prime, t1, ctx);
-	dump("t1        ", t1);
 
 	/* t2 = s*(x1 - x2) mod p */
 	b_mulmod(s, t1, prime, t2, ctx);
-	dump("t1        ", t2);
 
 	/* y2 = s*(x1 - x2) - y1  mod p */
 	b_submod(t2, pt1->y, prime, pt2->y, ctx);
-	dump("y3        ", pt2->y);
 
 err:
 	b_ctx_restore(ctx, &bkp);
@@ -195,7 +189,7 @@ err:
 /*
 	pt3 = pt1 + pt2;
 */
-int ecc_addition(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, ECC_POINT* pt3, b_ctx_t* ctx)
+static int ecc_addition(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, ECC_POINT* pt3, b_ctx_t* ctx)
 {
 	int rc = -1;
 	b_uint32_t* s;
@@ -224,35 +218,27 @@ int ecc_addition(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, ECC_POINT* pt3, b_ct
 
 	/* t1 = y2 - y1 mod p */
 	b_submod(pt2->y, pt1->y, prime, t1, ctx);
-	dump("t1        ",t1);
 
 	/* s = (y2-y1)*(x2-x1)^-1 mod p */
 	b_mulmod(t1, t2, prime, s, ctx);
-	dump("s         ", s);
 
 	/* t1 = s^2 mod p */
 	b_mulmod(s, s, prime, t1, ctx);
-	dump("t1        ", t1);
 
 	/* t2 = x1 + x2 mod p */
 	b_addmod(pt1->x, pt2->x, prime, t2, ctx);
-	dump("t1        ", t1);
 
 	/* x3 = s^2 - x1 - x2 mod p */
 	b_submod(t1, t2, prime, pt3->x, ctx);
-	dump("x3        ", pt3->x);
 
 	/* t1 = x1 - x3 mod p */
 	b_submod(pt1->x, pt3->x, prime, t1, ctx);
-	dump("t1        ", t1);
 
 	/* t2 = s*(x1 - x3) mod p */
 	b_mulmod(s, t1, prime, t2, ctx);
-	dump("t1        ", t2);
 
 	/* y3 = s*(x1 - x3) - y1  mod p */
 	b_submod(t2, pt1->y, prime, pt3->y, ctx);
-	dump("y3        ", pt3->y);
 
 err:
 	b_ctx_restore(ctx, &bkp);
@@ -264,12 +250,9 @@ err:
  * return 1 -- on the curve 
  *        0 -- not on the curve 
 */
-int ecc_validation(void* _self, void* _pt, b_ctx_t* ctx)
+static int ecc_validation(ECC* self, ECC_POINT* pt, b_ctx_t* ctx)
 {
 	int rc = 0;
-	ECC* self = (ECC*)_self;
-	ECC_POINT* pt = (ECC_POINT*) _pt;
-
 	b_uint32_t* prime = self->curve->p;
 	b_uint32_t* t1;
 	b_uint32_t* t2;
@@ -283,41 +266,101 @@ int ecc_validation(void* _self, void* _pt, b_ctx_t* ctx)
 	t3 = b_ctx_alloc(ctx, prime->len);
 	coe = b_ctx_alloc(ctx, prime->len);
 
-	dump("curve p   ", prime);
-	dump("curve a   ", self->curve->a);
-	dump("curve b   ", self->curve->b);
-
-	dump("x         ", pt->x);
-	dump("y         ", pt->y);
-
 	/* coe = 3 */
 	b_assign(coe, 0x00000003);
 
 	/* t1 = x^3 */
 	b_expmod(pt->x, coe, prime, t1, ctx);
-	dump("x^3       ", t1);
 
 	/* t2 = ax */
 	b_mulmod(pt->x, self->curve->a, prime, t2, ctx);
-	dump("ax        ", t2);
 
 	/* t3 = t1 + t2 = x^3 + ax */
 	b_addmod(t1, t2, prime, t3, ctx);
-	dump("x^3 + ax  ", t3);
 
 	/* t1 = t3+ b = x^3 + ax + b */
 	b_addmod(t3, self->curve->b, prime, t1, ctx);
-	dump("x^3+ax+b  ", t1);
 
 	/* t2 = y^2  */
 	b_mulmod(pt->y, pt->y, prime, t2, ctx);
-	dump("y^2       ", t2);
 
 	if (b_cmp(t1, t2) == 0)
 	{
 		rc = 1;
 	}
 
+	b_ctx_restore(ctx, &bkp);
+
+	return rc;
+}
+
+
+/* assign pt1 = pt2 */
+static inline void ecc_pointassign(ECC_POINT* pt1, ECC_POINT* pt2)
+{
+	b_mov(pt1->x, pt2->x);
+	b_mov(pt1->y, pt2->y);
+
+	return;
+}
+
+/*
+   Double-and-Add Algorithm for Point Multiplication
+   @pt2 = @d * @pt1
+*/
+int ecc_multiplication(void* _self, b_uint32_t* d, void* _pt1, void* _pt2, b_ctx_t* ctx)
+{
+	int rc = -1;
+	int top;
+	int topbit;
+	ECC* self = (ECC*)_self;
+	ECC_POINT* pt1 = (ECC_POINT* )_pt1;
+	ECC_POINT* pt2 = (ECC_POINT* )_pt2;
+	ECC_POINT* ptmp1 = (ECC_POINT* )new(Ecc_Point, self, NULL, NULL);
+	ECC_POINT* ptmp2 = (ECC_POINT* )new(Ecc_Point, self, NULL, NULL);
+	b_uint32_t* prime = self->curve->p;
+
+	b_ctx_bkp_t bkp;
+	b_ctx_save(ctx, &bkp);
+
+	/* Initialization: t2 = pt1 */
+	ecc_pointassign(ptmp2, pt1);
+
+	top = b_valid_top(d);
+	if (top == d->len)
+	{
+		/* d == 0 */
+		goto err;
+	}
+
+	topbit = b_valid_topbit(d);
+
+	for (int i= top*32 + topbit + 1; i<(d->len)*32; ++i)
+	{
+		/* t1 = t2 + t2 */
+		rc = ecc_doubling(self, ptmp2, ptmp1, ctx);
+
+		if (d->data[i/32] & (0x80000000 >> (i%32)))
+		{
+			/* t2 = t1 + pt1 */
+			rc |= ecc_addition(self, ptmp1, pt1, ptmp2, ctx);
+		}
+		else
+		{
+			ecc_pointassign(ptmp2, ptmp1);
+		}
+
+		if (0 != rc)
+		{
+			goto err;
+		}
+	}
+
+	ecc_pointassign(pt2, ptmp2);
+
+err:
+	delete((void*)ptmp1);
+	delete((void*)ptmp2);
 	b_ctx_restore(ctx, &bkp);
 
 	return rc;
