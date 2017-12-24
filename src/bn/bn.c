@@ -188,7 +188,10 @@ int b_valid_bit(uint32_t a, int* topbit)
 	return (32-i);
 }
 
-/* make a->top valid */
+/* 
+   make a->top valid 
+   return: the most significant byte of @a
+*/
 int b_valid_top(b_uint32_t* a)
 {
 	int len_a = a->len;

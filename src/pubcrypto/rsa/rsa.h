@@ -35,6 +35,10 @@ typedef struct{
 	b_uint32_t* qcp;     /* 1024bit, q*cp */
 	b_uint32_t* pcq;     /* 1024bit, p*cq */
 	int ready;          /* all varible is calculated */
+	b_uint32_t* version;
+//	void* m_asn1_pubkey_pkcs1;
+//	void* m_asn1_prikey_pkcs1;
+//	struct asn1_buff* m_asb;
 }RSA;
 
 void rsa_key_generate(void* _self);

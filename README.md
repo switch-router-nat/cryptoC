@@ -6,10 +6,9 @@ The cryptoC is a Cryptographylib implement by ANSI C
 
 
 ----------
-###构建例子
 ###Build example
 
-在工程目录下，使用scons进行构建（单纯不想写makefile），这需要你提前安装了scons,以及依赖的python环境
+在工程目录下，使用scons进行构建，这需要你提前安装了scons,以及依赖的python环境
 This assumes you have a shell in the project directory, and scons (python) is installed
 
 1.  `% scons`
@@ -24,7 +23,6 @@ ut文件中的文件是使用Cryptolib的例子，同样可以使用scons进行�
 We build a executable file **ut_rsa** 
 
 -----------
-###已完成或正在进行的部分
 ###Road map
 
 + Block Cipher
@@ -33,8 +31,12 @@ We build a executable file **ut_rsa**
 + Public Key Cryptography
   + RSA
   + ECC
-* MAC
++ MAC
   + SHA (SHA1 SHA512)
++ Big Num Operation
++ Tool
+  + base64
+  + asn1
 
 
 
