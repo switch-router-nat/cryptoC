@@ -1,0 +1,41 @@
+/*
+ * File       : ds.h
+ * Description: Digital Signature base
+ * Change Logs:
+ * Date           Author       Notes
+ * 2017-10-15     QshLyc       first version
+ */
+
+#ifndef _DS_H_
+#define _DS_H_
+
+extern const void* DSbase;
+
+
+enum ds_state_e{
+	DS_INIT = 0,
+	DS_PUBKEYONLY,    /* only have public key     */
+	DS_PUBPRIKEY,     /* public/private key valid */
+};
+
+typedef struct{
+    const void* object;
+    enum ds_state_e state;
+}DSBASE;
+
+typedef struct {
+	int (*keygenerate)(void* _self);
+	int (*signature)(void* _self, const uint8_t* text, uint32_t textlen, uint8_t* sig, uint32_t* siglen);
+	int (*verify)(void *_self, const uint8_t* text, uint32_t textlen, uint8_t* sig, uint32_t* siglen);
+}DSBASEvtbl;
+
+
+// int DS_GenerateKey(void* _self);
+
+int DS_KeyGenerate(void* _self);
+//int DS_Signature(void* _self, const uint8_t* text, uint32_t textlen, uint8_t* sig, uint32_t* siglen);
+//int DS_Verify(void* _self, const uint8_t* text, uint32_t textlen, uint8_t* sig, uint32_t* siglen);
+
+
+
+#endif 

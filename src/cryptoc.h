@@ -20,5 +20,7 @@
 #include "util/base64.h"
 #include "pubcrypto/rsa/rsa.h"
 #include "pubcrypto/ecc/ecc.h"
+#include "ds/ds.h"
+#include "ds/dsa.h"
 
 #endif

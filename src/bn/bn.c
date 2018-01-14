@@ -1279,11 +1279,11 @@ void b_random(b_uint32_t* a)
 		time_t t;
 		t = time(NULL);
 		seed = (unsigned long)t;
+		srand(seed);
 	}
 
 	b_zero(a);
 
-	srand(seed);
 	for (int i = 0; i < len_a; ++i)
 	{
 		a->data[i] = rand() & 0xff;
@@ -1292,7 +1292,8 @@ void b_random(b_uint32_t* a)
 		a->data[i] |= (rand() & 0xff) << 24;
 	}
 
-	seed = a->data[0];
+	a->data[0] |= 0x80000000;
+	//seed = a->data[0];
 
 	return;
 }
