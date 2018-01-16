@@ -51,6 +51,7 @@ void b_destroy(b_uint32_t* a);
 
 void b_zero(b_uint32_t *a);
 void b_assign(b_uint32_t* a, uint32_t val);
+void b_assign2(b_uint32_t *a, uint8_t* data, uint32_t len);
 void b_toggle(b_uint32_t* a);
 void b_swap(b_uint32_t** a, b_uint32_t** b);
 void b_swap3(b_uint32_t** a, b_uint32_t** b, b_uint32_t** c);
@@ -79,6 +80,7 @@ void b_div(b_uint32_t* de, b_uint32_t* di, b_uint32_t* q, b_uint32_t* r, b_ctx_t
 int is_prime(b_uint32_t* p, int security, b_ctx_t* ctx);
 void b_random(b_uint32_t* a);
 void b_odd(b_uint32_t* a);
+void b_even(b_uint32_t* a);
 void prime_random(b_uint32_t* p, b_ctx_t* ctx);
 void euclidean_algorithm(b_uint32_t* r0, b_uint32_t* r1, b_uint32_t* gcd, b_ctx_t* ctx);
 void ex_euclidean_algorithm(b_uint32_t* r0, b_uint32_t* r1, b_uint32_t* gcd, b_uint32_t* t, b_ctx_t* ctx);

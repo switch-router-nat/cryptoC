@@ -71,3 +71,10 @@ int DS_KeyGenerate(void* _self)
 	DSBASE* self = _self;
 	return (((DSBASEvtbl*)(((OBJECT*)(self->object))->vptr))->keygenerate)((void*)self);
 }
+
+
+int DS_Signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t siglen)
+{
+	DSBASE* self = _self;
+	return (((DSBASEvtbl*)(((OBJECT*)(self->object))->vptr))->signature)((void*)self, msg, msglen, sig, siglen);
+}

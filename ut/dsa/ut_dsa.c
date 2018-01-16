@@ -24,6 +24,10 @@ int main()
 
 	DS_KeyGenerate(dsa);
 
+	uint8_t* msg = "afnjkefnlakjfnakjlfnkajlfhkajcnuihqkjlnaksfjnalksfjlaksjfnclaksjdqkjlafhljkadfna";
+
+	DS_Signature(dsa, msg, strlen(msg), NULL, 0);
+
 	delete(dsa);
 
 	return 0;	

@@ -17,19 +17,40 @@
 #define BN_MIN(a,b)  ((a)<(b)?(a):(b))
 #define BN_MAX(a,b)  ((a)<(b)?(b):(a))
 
+/*
+	clear a
+*/
 void b_zero(b_uint32_t *a)
 {
 	memset((void*)(a->data), 0, (a->len)*sizeof(uint32_t));
 	a->neg = 0;
+	return;
 }
 
+/*
+	assign a = val
+*/
 void b_assign(b_uint32_t *a, uint32_t val)
 {
 	memset((void*)(a->data), 0, (a->len)*sizeof(uint32_t));
 	a->data[a->len-1] = val;
 	a->neg = 0;		
+	return;
 }
 
+/*
+	assign a = data
+*/
+void b_assign2(b_uint32_t *a, uint8_t* data, uint32_t len)
+{
+	memcpy((void*)(a->data), data, len);
+	a->neg = 0;		
+	return;
+}
+
+/*
+	initialize calculate context
+*/
 void b_ctx_init(b_ctx_t* ctx, int len)
 {
 	ctx->len    = len;
@@ -61,21 +82,33 @@ void b_ctx_init(b_ctx_t* ctx, int len)
 	return;
 }
 
+/*
+	save calculate context
+*/
 void b_ctx_save(b_ctx_t* ctx, b_ctx_bkp_t* bkp)
 {
 	bkp->depth1 = ctx->depth1;
 	bkp->depth2 = ctx->depth2;
 	bkp->depth4 = ctx->depth4;
+
+	return;
 }
 
+/*
+	restore calculate context
+*/
 void b_ctx_restore(b_ctx_t* ctx, b_ctx_bkp_t* bkp)
 {
 	ctx->depth1 = bkp->depth1;
 	ctx->depth2 = bkp->depth2;
 	ctx->depth4 = bkp->depth4;
+
+	return;
 }
 
-
+/*
+	alloc temp bn in context
+*/
 b_uint32_t* b_ctx_alloc(b_ctx_t* ctx, int len)
 {
 	if (len == ctx->len)
@@ -92,6 +125,9 @@ b_uint32_t* b_ctx_alloc(b_ctx_t* ctx, int len)
 	}
 }
 
+/*
+	finish calculate context 
+*/
 void b_ctx_fini(b_ctx_t* ctx)
 {
 	for (int i = 0; i < B_CTX_SIZE; ++i)
@@ -122,11 +158,15 @@ void b_destroy(b_uint32_t* a)
 	a->data = NULL;
 	free(a);
 	a = NULL;
+
+	return;
 }
 
 void b_toggle(b_uint32_t* a)
 {
 	a->neg = !a->neg;
+
+	return;
 }
 
 void b_swap(b_uint32_t** a, b_uint32_t** b)
@@ -168,6 +208,8 @@ void dump(char* string, b_uint32_t *a)
 		/* code */
 	}
 	printf("\n");
+
+	return;
 }
 
 /** get the number of valid bit(start with non-zero bit)  
@@ -315,6 +357,12 @@ int b_add(b_uint32_t *a, b_uint32_t *b, b_uint32_t *c)
 		return !!(carry);
 	}
 
+	if (0 == len_a && 0 == len_b)
+	{
+		c->data[len_c - 1] = 1;
+		return 0;
+	}
+
 	if (len_a)
 	{
 		while(len_a && len_c)
@@ -329,7 +377,7 @@ int b_add(b_uint32_t *a, b_uint32_t *b, b_uint32_t *c)
 			len_c--;
 		}
 	}
-	else
+	else /* len_b */
 	{
 		while(len_b && len_c)
 		{
@@ -1292,8 +1340,7 @@ void b_random(b_uint32_t* a)
 		a->data[i] |= (rand() & 0xff) << 24;
 	}
 
-	a->data[0] |= 0x80000000;
-	//seed = a->data[0];
+	//a->data[0] |= 0x80000000;
 
 	return;
 }
@@ -1305,6 +1352,16 @@ void b_odd(b_uint32_t* a)
 	{
 		b_add2(a, 1, 0); /* a = a + 1 */
 	}
+
+	a->data[a->len-1] |= 1;
+
+	return;
+}
+
+/* make a num even */
+void b_even(b_uint32_t* a)
+{
+	a->data[a->len-1] &=~ 1;
 
 	return;
 }
