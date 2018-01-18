@@ -41,11 +41,20 @@ void b_assign(b_uint32_t *a, uint32_t val)
 /*
 	assign a = data
 */
-void b_assign2(b_uint32_t *a, uint8_t* data, uint32_t len)
+void b_input(b_uint32_t *a, uint8_t* data, uint32_t len)
 {
 	memcpy((void*)(a->data), data, len);
 	a->neg = 0;		
 	return;
+}
+
+/*
+	assign data = a
+*/
+uint32_t b_output(b_uint32_t *a, uint8_t* data)
+{
+	memcpy(data, (void*)(a->data), a->len << 2);	
+	return (a->len << 2);
 }
 
 /*

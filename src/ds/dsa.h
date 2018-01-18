@@ -29,8 +29,8 @@ typedef struct{
 	b_uint32_t* p;       /* L bits prime p */
 	b_uint32_t* q;       /* N bits prime q */
 	b_uint32_t* g;       /* a generator of a subgroup of order q in GF(P), 1 < g < p */
-	b_uint32_t* x;
-	b_uint32_t* y;
+	b_uint32_t* x;       /* private key */
+	b_uint32_t* y;       /* public key  */
 }DSA;
 
 

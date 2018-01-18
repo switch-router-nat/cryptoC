@@ -25,7 +25,7 @@ typedef struct{
 
 typedef struct {
 	int (*keygenerate)(void* _self);
-	int (*signature)(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t siglen);
+	int (*signature)(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t* siglen);
 	int (*verify)(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t siglen);
 }DSBASEvtbl;
 
@@ -33,9 +33,7 @@ typedef struct {
 // int DS_GenerateKey(void* _self);
 
 int DS_KeyGenerate(void* _self);
-int DS_Signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t siglen);
-//int DS_Verify(void* _self, const uint8_t* text, uint32_t textlen, uint8_t* sig, uint32_t* siglen);
-
-
+int DS_Signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t* siglen);
+int DS_Verify(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t siglen);
 
 #endif 

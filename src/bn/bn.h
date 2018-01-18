@@ -51,7 +51,8 @@ void b_destroy(b_uint32_t* a);
 
 void b_zero(b_uint32_t *a);
 void b_assign(b_uint32_t* a, uint32_t val);
-void b_assign2(b_uint32_t *a, uint8_t* data, uint32_t len);
+void b_input(b_uint32_t *a, uint8_t* data, uint32_t len);
+uint32_t b_output(b_uint32_t *a, uint8_t* data);
 void b_toggle(b_uint32_t* a);
 void b_swap(b_uint32_t** a, b_uint32_t** b);
 void b_swap3(b_uint32_t** a, b_uint32_t** b, b_uint32_t** c);

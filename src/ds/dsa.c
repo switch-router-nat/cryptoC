@@ -28,9 +28,9 @@ static void* dsa_ctor(void *_self, va_list *app)
     DSA *self = _self;
     ((const OBJECT*)DSbase)->ctor(_self, app);
 
-	self->size = va_arg(*app, enum dsa_size_e);
+	enum dsa_size_e size = va_arg(*app, enum dsa_size_e);
 
-	switch(self->size)
+	switch(size)
 	{
 		case (DSA_L1024_N160):
 		{
@@ -85,12 +85,8 @@ static int dsa_keygenerate(void* _self)
 	/* generate prime q */
 	prime_random(self->q, &ctx_q);
 
-	//dump("q   ", self->q);
-
 	/* tmp1 = 2q */
 	b_add(self->q, self->q, tmp1);
-
-	//dump("2q  ", tmp1);
 
 	b_random(tmp2);
 
@@ -130,23 +126,20 @@ static int dsa_keygenerate(void* _self)
 	
 	}while(!b_cmp2(self->g, 0x00000001));
 
-	dump("g   ",self->g);
-
 	/* generate random private key:self->x */
 	b_random(self->x);
 	b_mod(self->x, self->q, self->x, &ctx_q);
 
-	dump("x   ",self->x);
 	/* calc public key self->y */
 	b_expmod(self->g, self->x, self->p, self->y, &ctx_p);
 	
-	dump("y   ",self->y);
-
 	b_destroy(tmp1);
 	b_destroy(tmp2);
 
 	b_ctx_fini(&ctx_p);
 	b_ctx_fini(&ctx_q);
+
+	self->super.state = DS_PUBPRIKEY;
 
 	return 0;
 }
@@ -158,24 +151,25 @@ static int dsa_keygenerate(void* _self)
 	@sig   : the output signature
 	@siglen: the signature length (bytes)
 */
-static int dsa_signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t siglen)
+static int dsa_signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t* siglen)
 {
 	DSA *self = _self;
 	int p_len = self->p->len;
 	int q_len = self->q->len;
 	b_ctx_t ctx_p, ctx_q;
+	*siglen = 0;
 
 	b_ctx_init(&ctx_p, p_len);
 	b_ctx_init(&ctx_q, q_len);
 
-	b_uint32_t* r = b_ctx_alloc(&ctx_q, q_len);
-	b_uint32_t* s = b_ctx_alloc(&ctx_q, q_len);
 	b_uint32_t* k = b_ctx_alloc(&ctx_q, q_len);
 	b_uint32_t* invk = b_ctx_alloc(&ctx_q, q_len);
 	b_uint32_t* tmp1 = b_ctx_alloc(&ctx_p, p_len);
 	b_uint32_t* tmp2 = b_ctx_alloc(&ctx_q, q_len);
 	b_uint32_t* tmp3 = b_ctx_alloc(&ctx_q, q_len);
 	b_uint32_t* z = b_ctx_alloc(&ctx_q, q_len);
+	b_uint32_t* r = b_ctx_alloc(&ctx_q, q_len);
+	b_uint32_t* s = b_ctx_alloc(&ctx_q, q_len);
 
 	b_random(k);
 
@@ -196,7 +190,7 @@ static int dsa_signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8
 
 	SHA_CalculateDigest(sha1, msg, msglen << 3, digest);
 	
-	b_assign2(z, digest, sizeof(digest));
+	b_input(z, digest, sizeof(digest));
 
 	b_mod(z, self->q, z, &ctx_q);
 
@@ -206,38 +200,8 @@ static int dsa_signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8
 	/* s = k^(-1) * (z+xr) mod q  */
 	b_mulmod(invk, tmp3, self->q, s, &ctx_q);
 
-	dump("r" ,r);
-	dump("s" ,s);
-
-	/* tmp2 = s^(-1) mod q */
-	b_inverse(s, self->q, tmp2, &ctx_q);
-
-	b_uint32_t* u1 = b_ctx_alloc(&ctx_q, q_len);
-	b_uint32_t* u2 = b_ctx_alloc(&ctx_q, q_len);
-	b_uint32_t* vp = b_ctx_alloc(&ctx_p, p_len);
-	b_uint32_t* v = b_ctx_alloc(&ctx_q, q_len);
-
-	/* u1 = s^(-1)*SHA(msg) mod q */
-	b_mulmod(tmp2, z, self->q, u1, &ctx_q);
-
-	/* u2 = tmp2*r mod q */
-	b_mulmod(tmp2, r, self->q, u2, &ctx_q);
-
-	b_uint32_t* tmp4 = b_ctx_alloc(&ctx_p, p_len);
-	b_uint32_t* tmp5 = b_ctx_alloc(&ctx_p, p_len);
-
-	/* tmp4 = g^(u1) mod p */
-	b_expmod(self->g, u1, self->p, tmp4, &ctx_p);
-
-	/* tmp5 = y^(u2) mod p */
-	b_expmod(self->y, u2, self->p, tmp5, &ctx_p);
-
-	/* vp = g^(u1) * y^(u2) mod p */
-	b_mulmod(tmp4, tmp5, self->p, vp, &ctx_p);
-
-	b_mod(vp, self->q, v, &ctx_p);
-
-	dump("v", v);
+	*siglen += b_output(r, sig);
+	*siglen += b_output(s, sig + *siglen);
 
 	b_ctx_fini(&ctx_p);
 	b_ctx_fini(&ctx_q);
@@ -247,15 +211,88 @@ static int dsa_signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8
 	return 0;
 }
 
-static int dsa_verify(void* _self)
+/*
+	verify message
+	@msg   : the message to verify
+	@msglen: the message length (bytes)
+	@sig   : the signature
+	@siglen: the signature length (bytes)
+
+	return : 1 -- valid
+	         0 -- invalid
+*/
+static int dsa_verify(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t siglen)
 {
-	return 0;
+	DSA *self = _self;
+	int valid = 0;
+	int p_len = self->p->len;
+	int q_len = self->q->len;
+	b_ctx_t ctx_p, ctx_q;
+
+	b_ctx_init(&ctx_p, p_len);
+	b_ctx_init(&ctx_q, q_len);
+
+	b_uint32_t* tmp1 = b_ctx_alloc(&ctx_q, q_len);
+	b_uint32_t* tmp2 = b_ctx_alloc(&ctx_p, p_len);
+	b_uint32_t* tmp3 = b_ctx_alloc(&ctx_p, p_len);
+	b_uint32_t* z = b_ctx_alloc(&ctx_q, q_len);
+	b_uint32_t* r = b_ctx_alloc(&ctx_q, q_len);
+	b_uint32_t* s = b_ctx_alloc(&ctx_q, q_len);
+
+	b_input(r, sig, siglen/2);
+	b_input(s, sig + siglen/2, siglen/2);
+
+	/* tmp1 = s^(-1) mod q */
+	b_inverse(s, self->q, tmp1, &ctx_q);
+
+	b_uint32_t* u1 = b_ctx_alloc(&ctx_q, q_len);
+	b_uint32_t* u2 = b_ctx_alloc(&ctx_q, q_len);
+	b_uint32_t* vp = b_ctx_alloc(&ctx_p, p_len);
+	b_uint32_t* v = b_ctx_alloc(&ctx_q, q_len);
+
+	void* sha1 = new(Sha1);
+	uint8_t digest[20];
+
+	SHA_CalculateDigest(sha1, msg, msglen << 3, digest);
+	
+	b_input(z, digest, sizeof(digest));
+
+	b_mod(z, self->q, z, &ctx_q);
+
+	/* u1 = s^(-1)*SHA(msg) mod q */
+	b_mulmod(tmp1, z, self->q, u1, &ctx_q);
+
+	/* u2 = tmp1*r mod q */
+	b_mulmod(tmp1, r, self->q, u2, &ctx_q);
+
+	/* tmp2 = g^(u1) mod p */
+	b_expmod(self->g, u1, self->p, tmp2, &ctx_p);
+
+	/* tmp3 = y^(u2) mod p */
+	b_expmod(self->y, u2, self->p, tmp3, &ctx_p);
+
+	/* vp = g^(u1) * y^(u2) mod p */
+	b_mulmod(tmp2, tmp3, self->p, vp, &ctx_p);
+
+	b_mod(vp, self->q, v, &ctx_p);
+
+	if (!b_cmp(v, r))
+	{
+		valid = 1;
+	}
+
+	b_ctx_fini(&ctx_p);
+	b_ctx_fini(&ctx_q);
+
+	delete(sha1);
+
+	return valid;
 }
 
 static DSBASEvtbl const dsa_vtbl = {
 	&dsa_keygenerate,
 	&dsa_signature,
-	NULL,
+	&dsa_verify,
 };
 
 static const OBJECT _Dsa = {
