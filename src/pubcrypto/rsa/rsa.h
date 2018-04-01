@@ -13,13 +13,7 @@
 extern "C" {
 #endif
 
-extern const void* Rsa;
 
-
-enum rsa_format {
-	RSA_FORMAT_PKCS1,
-	RSA_FORMAT_PKCS8
-};
 
 typedef struct{
 	const void* object;
@@ -41,12 +35,7 @@ typedef struct{
 //	struct asn1_buff* m_asb;
 }RSA;
 
-void rsa_key_generate(void* _self);
-int rsa_encryption(void* _self, b_uint32_t* x, b_uint32_t* y);
-int rsa_decryption(void* _self, b_uint32_t* y, b_uint32_t* x);
 
-int rsa_gen_pubkeypem(void* _self, char* filename, enum rsa_format format);
-int rsa_gen_prikeypem(void* _self, char* filename, enum rsa_format format);
 
 #ifdef __cplusplus
 }

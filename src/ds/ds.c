@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "../cryptoc.h"
 #include "../base/object.h"
 #include "ds.h"
 
@@ -76,10 +77,12 @@ int DS_Signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig,
 {
 	DSBASE* self = _self;
 
+	/*
 	if (self->state != DS_PUBPRIKEY)
 	{
 		return 0;
 	}
+	*/
 
 	return (((DSBASEvtbl*)(((OBJECT*)(self->object))->vptr))->signature)((void*)self, msg, msglen, sig, siglen);
 }
@@ -88,10 +91,12 @@ int DS_Verify(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, ui
 {
 	DSBASE* self = _self;
 
+	/*
 	if (self->state != DS_PUBKEYONLY)
 	{
 		return 0;
 	}
-
+	*/
+	
 	return (((DSBASEvtbl*)(((OBJECT*)(self->object))->vptr))->verify)((void*)self, msg, msglen, sig, siglen);
 }

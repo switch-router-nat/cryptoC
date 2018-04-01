@@ -7,7 +7,6 @@
 #ifndef _SHA1_H_
 #define _SHA1_H_
 
-extern const void* Sha1;
 
 typedef struct{
 	SHA super;

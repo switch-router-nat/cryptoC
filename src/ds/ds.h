@@ -32,8 +32,4 @@ typedef struct {
 
 // int DS_GenerateKey(void* _self);
 
-int DS_KeyGenerate(void* _self);
-int DS_Signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t* siglen);
-int DS_Verify(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t siglen);
-
 #endif 

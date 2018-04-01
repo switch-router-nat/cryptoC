@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "../cryptoc.h"
 #include "../base/object.h"
 #include "blockcipher.h"
 #include "aes.h"

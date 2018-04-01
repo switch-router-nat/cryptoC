@@ -18,6 +18,5 @@ typedef struct{
 }SHA;
 
 
-void SHA_CalculateDigest(void* _self, const uint8_t *data, uint64_t size, uint8_t *digest);
 
 #endif

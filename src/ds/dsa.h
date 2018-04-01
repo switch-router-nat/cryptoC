@@ -13,15 +13,6 @@
 extern "C" {
 #endif
 
-extern const void* Dsa;
-
-
-enum dsa_size_e{
-	DSA_L1024_N160,
-	DSA_L2048_N224,
-	DSA_L2048_N256,
-	DSA_L3072_N256,
-};
 
 typedef struct{
 	DSBASE super;

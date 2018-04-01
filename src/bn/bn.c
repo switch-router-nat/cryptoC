@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <time.h>
 
+#include "../cryptoc.h"
 #include "bn.h"
 
 #define BN_MIN(a,b)  ((a)<(b)?(a):(b))

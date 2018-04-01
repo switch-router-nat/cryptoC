@@ -7,7 +7,6 @@
 #ifndef _SHA512_H_
 #define _SHA512_H_
 
-extern const void* Sha512;
 
 typedef struct{
 	SHA super;

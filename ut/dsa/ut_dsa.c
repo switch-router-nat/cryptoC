@@ -32,7 +32,7 @@ int main()
 	DS_Signature(dsa, msg, strlen(msg), signature, &siglen);
 
 	/* just for test */
-	((DSBASE* )dsa)->state = DS_PUBKEYONLY;
+	//((DSBASE* )dsa)->state = DS_PUBKEYONLY;
 
 	valid = DS_Verify(dsa, msg, strlen(msg), signature, siglen);
 	if (valid == 1)

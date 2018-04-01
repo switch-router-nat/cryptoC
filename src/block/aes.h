@@ -8,17 +8,11 @@
 #define _AES_H_
 
 
-enum aes_type_e{
-	AES_TYPE_128 = 0,
-	AES_TYPE_192,
-	AES_TYPE_256
-};
-
 #define AES128_KEYLEN      16
 #define AES192_KEYLEN      24
 #define AES256_KEYLEN      32
 
-#define AES_BLOCKSIZE   16
+#define AES_BLOCKSIZE      16
 
 #define AES128_ROUND_NR    11
 #define AES192_ROUND_NR    13

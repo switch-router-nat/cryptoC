@@ -16,9 +16,6 @@ typedef struct{
     void* (* dtor)(void* self);
 }OBJECT;
 
-void *new (const void* _object,...);
-void delete (void* self);
-
 
 #endif
 
