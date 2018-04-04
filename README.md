@@ -33,6 +33,7 @@ We build a executable file **ut_rsa**
   + ECC
 + MAC
   + SHA (SHA1 SHA512)
+  + MD5
 + Digital Signature
   + DSA
 + Big Num Operation
