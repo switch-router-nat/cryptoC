@@ -7,6 +7,8 @@
 #ifndef _ROLATE_SHIFT_H_
 #define _ROLATE_SHIFT_H_
 
+#define ROTATE_LEFT(x,n) ((x << n) | (x >> (32-n)))
+#define ROTATE_RIGHT(x,n) ((x >> n) | (x << (32-n)))
 
 uint32_t Rotl32(uint32_t word, uint8_t l);
 uint32_t Rotr32(uint32_t word, uint8_t l);

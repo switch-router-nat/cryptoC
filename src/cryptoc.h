@@ -195,21 +195,11 @@ extern const void* Sha512;
 void SHA_CalculateDigest(void* _self, const uint8_t *data, uint64_t size, uint8_t *digest);
 
 /****************************/
+extern const void* Md5;
+
+/* Calc MD5 Digest */
+/* @digest: output which must have 128bit space */
+void MD5_CalculateDigest(void* _self, uint8_t* input, uint32_t inputlen, uint8_t *digest);
 /*********************/
-/*
-#include "base/object.h"
-#include "block/blockcipher.h"
-#include "block/aes.h"
-#include "block/des.h"
-#include "hash/sha.h"
-#include "hash/sha1.h"
-#include "hash/sha512.h"
-#include "bn/bn.h"
-#include "util/base64.h"
-#include "pubcrypto/rsa/rsa.h"
-#include "pubcrypto/ecc/ecc.h"
-#include "ds/ds.h"
-#include "ds/dsa.h"
-*/
 
 #endif

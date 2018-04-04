@@ -73,6 +73,7 @@ int main()
   	printf("\n=========plaintext end==============\n");
 
 	BlockCipher_SetKey(aes, aeskey);
+	BlockCipher_SetPad(aes, BLOCKCIPHER_PAD_PKCS7);
 	BlockCipher_Encryption(aes, plaintext, strlen(plaintext), ciphertext, &cipherlen);
 
 	printf("\n=========cipher ====================\n");

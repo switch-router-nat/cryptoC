@@ -1,0 +1,1 @@
+Program('ut_md5',Glob('*.c'),LIBS=['cryptoc'],LIBPATH='../../')
