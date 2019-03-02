@@ -1,7 +1,0 @@
-Import('env')
-
-objs = []
-
-objs = objs +  env.Object(Glob('*.c'))
-
-Return('objs')

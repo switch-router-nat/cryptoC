@@ -3,7 +3,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2017-11-21     QshLyc       first version
+ * 2017-11-21     187J3X1       first version
  */
 
 #include <stdio.h>
@@ -17,7 +17,7 @@
 static const uint8_t* base64enc_tbl = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static const uint8_t base64dec_tbl[]= 
 {
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     62, // '+'
     0, 0, 0,
@@ -55,9 +55,9 @@ uint32_t cc_base64_encode(const uint8_t* plaintext, uint32_t size, uint8_t* base
     switch (size % 3) 
     {
         case 1:
-            base64[--j] = '=';
+        base64[--j] = '=';
         case 2:
-            base64[--j] = '=';
+        base64[--j] = '=';
     }
 
     return base64size;
@@ -66,10 +66,10 @@ uint32_t cc_base64_encode(const uint8_t* plaintext, uint32_t size, uint8_t* base
 
 uint32_t cc_base64_decode(const uint8_t* base64, uint32_t base64size, uint8_t *plaintext) 
 {
-	uint32_t i = 0;
-	uint32_t j = 0;
-	uint32_t plainsize = 0;
-	uint8_t n1,n2,n3,n4;
+    uint32_t i = 0;
+    uint32_t j = 0;
+    uint32_t plainsize = 0;
+    uint8_t n1,n2,n3,n4;
     while (j < base64size)
     {
         n1 = base64dec_tbl[base64[j++]];
@@ -81,14 +81,14 @@ uint32_t cc_base64_decode(const uint8_t* base64, uint32_t base64size, uint8_t *p
 
         if (base64[j-2] == '=')
         {
-        	break;
+            break;
         }
 
         plaintext[i++] = (n2 << 4) | (n3 >> 2);
-        
+
         if (base64[j-1] == '=')
         {
-        	break;
+            break;
         }
 
         plaintext[i++] = (n3 << 6) | n4;

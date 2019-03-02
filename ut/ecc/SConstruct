@@ -1,1 +1,0 @@
-Program('ut_ecc',Glob('*.c'),LIBS=['cryptoc'],LIBPATH='../../')

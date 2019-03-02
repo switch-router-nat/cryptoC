@@ -1,9 +1,9 @@
 /*
- * File       :  base64.c
+ * File       :  list.c
  *
  * Change Logs:
  * Date           Author       Notes
- * 2017-12-09     QshLyc       first version
+ * 2017-12-09     187J3X1       first version
  */
 
 #include <stdio.h>

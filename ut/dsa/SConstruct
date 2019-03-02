@@ -1,1 +1,0 @@
-Program('ut_dsa',Glob('*.c'),LIBS=['cryptoc'],LIBPATH='../../')

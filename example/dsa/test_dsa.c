@@ -3,7 +3,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2017-11-19     QshLyc       first version
+ * 2017-11-19     187J3X1       first version
  */
 
 #include <stdio.h>
@@ -14,7 +14,8 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "../../src/cryptoc.h"
+#include <cryptoc.h>
+
 
 int main()
 {
@@ -23,16 +24,13 @@ int main()
 	uint32_t siglen = 0;
  	int valid = 0;
 
-	void* dsa = new(Dsa, DSA_L1024_N160);
+	void* dsa = (void*)new(Dsa, DSA_L1024_N160);
 
 	DS_KeyGenerate(dsa);
 
 	uint8_t* msg = "afnjkefnlakjfnakjlfnkajlfhkajcnuihqkjlnaksfjnalksfjlaksjfnclaksjdqkjlafhljkadfna";
 
 	DS_Signature(dsa, msg, strlen(msg), signature, &siglen);
-
-	/* just for test */
-	//((DSBASE* )dsa)->state = DS_PUBKEYONLY;
 
 	valid = DS_Verify(dsa, msg, strlen(msg), signature, siglen);
 	if (valid == 1)

@@ -3,7 +3,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2017-11-19     QshLyc       first version
+ * 2017-11-19     187J3X1       first version
  */
 
 #ifndef _CRYPTOC_BASE64_H_

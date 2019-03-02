@@ -1,1 +1,0 @@
-Program('ut_sha512',Glob('*.c'),LIBS=['cryptoc'],LIBPATH='../../')

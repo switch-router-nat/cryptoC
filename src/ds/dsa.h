@@ -3,7 +3,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2017-11-19     QshLyc       first version
+ * 2017-11-19     187J3X1       first version
  */
 
 #ifndef _CRYPTOC_DSA_H_
@@ -15,13 +15,13 @@ extern "C" {
 
 
 typedef struct{
-	DSBASE super;
-	enum dsa_size_e size;
-	b_uint32_t* p;       /* L bits prime p */
-	b_uint32_t* q;       /* N bits prime q */
-	b_uint32_t* g;       /* a generator of a subgroup of order q in GF(P), 1 < g < p */
-	b_uint32_t* x;       /* private key */
-	b_uint32_t* y;       /* public key  */
+    DSBASE super;
+    enum dsa_size_e size;
+    b_uint32_t* p;       /* L bits prime p */
+    b_uint32_t* q;       /* N bits prime q */
+    b_uint32_t* g;       /* a generator of a subgroup of order q in GF(P), 1 < g < p */
+    b_uint32_t* x;       /* private key */
+    b_uint32_t* y;       /* public key  */
 }DSA;
 
 

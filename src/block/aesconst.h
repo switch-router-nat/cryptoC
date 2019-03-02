@@ -3,7 +3,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2017-09-25     QshLyc       first version
+ * 2017-09-25     187J3X1       first version
  */
 
 #ifndef _AES_CONST_H

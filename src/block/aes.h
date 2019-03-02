@@ -2,7 +2,7 @@
  * File       : aes.h *
  * Change Logs:
  * Date           Author       Notes
- * 2017-09-25     QshLyc       first version
+ * 2017-09-25     187J3X1       first version
  */
 #ifndef _AES_H_
 #define _AES_H_
@@ -27,10 +27,10 @@ typedef struct{
 extern const void* Aes;
 
 typedef struct{
-	BLOCKCIPHER super;
-	enum aes_type_e type;
-	uint8_t  key[AES256_KEYLEN];              /* User Key */
-	uint32_t roundkey[AES256_ROUND_NR * 4];   /* Round Key*/
+    BLOCKCIPHER super;
+    enum aes_type_e type;
+    uint8_t  key[AES256_KEYLEN];              /* User Key */
+    uint32_t roundkey[AES256_ROUND_NR * 4];   /* Round Key*/
 }AES;
 
 

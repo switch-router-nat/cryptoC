@@ -3,7 +3,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2017-08-09     QshLyc       first version
+ * 2017-08-09     187J3X1       first version
  */
 
 #ifndef _OBJECT_H_

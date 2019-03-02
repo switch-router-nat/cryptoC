@@ -3,7 +3,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2017-10-15     QshLyc       first version
+ * 2017-10-15     187J3X1       first version
  */
 
 #include <stdio.h>
@@ -22,39 +22,39 @@
 */
 static int ds_keygenerate(void* _self)
 {
-	return 0;
+    return 0;
 }
 
 static int ds_signature(void* _self, const uint8_t* text, uint32_t textlen, uint8_t* sig, uint32_t* siglen)
 {
-	return 0;
+    return 0;
 }
 
 static int ds_verify(void *_self, const uint8_t* text, uint32_t textlen, uint8_t* sig, uint32_t siglen)
 {
-	return 0;
+    return 0;
 }
 
 /* Virtual Table of DS Base */
 static DSBASEvtbl const vtbl = {
-	&ds_keygenerate,
-	&ds_signature,
-	&ds_verify,
+    &ds_keygenerate,
+    &ds_signature,
+    &ds_verify,
 };
 
 static void* ds_ctor(void *_self, va_list *app)
 {
-	DSBASE *self = _self;
-	
-	self->state = DS_INIT;
+    DSBASE *self = _self;
 
-	return _self;
+    self->state = DS_INIT;
+
+    return _self;
 }
 
 static void* ds_dtor(void* _self)
 {
-	DSBASE* self = _self;
-	return _self;
+    DSBASE* self = _self;
+    return _self;
 }
 
 static const OBJECT _DSbase = {
@@ -69,34 +69,20 @@ const void* DSbase = &_DSbase;
 
 int DS_KeyGenerate(void* _self)
 {
-	DSBASE* self = _self;
-	return (((DSBASEvtbl*)(((OBJECT*)(self->object))->vptr))->keygenerate)((void*)self);
+    DSBASE* self = _self;
+    return (((DSBASEvtbl*)(((OBJECT*)(self->object))->vptr))->keygenerate)((void*)self);
 }
 
 int DS_Signature(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t* siglen)
 {
-	DSBASE* self = _self;
+    DSBASE* self = _self;
 
-	/*
-	if (self->state != DS_PUBPRIKEY)
-	{
-		return 0;
-	}
-	*/
-
-	return (((DSBASEvtbl*)(((OBJECT*)(self->object))->vptr))->signature)((void*)self, msg, msglen, sig, siglen);
+    return (((DSBASEvtbl*)(((OBJECT*)(self->object))->vptr))->signature)((void*)self, msg, msglen, sig, siglen);
 }
 
 int DS_Verify(void* _self, const uint8_t* msg, uint32_t msglen, uint8_t* sig, uint32_t siglen)
 {
-	DSBASE* self = _self;
-
-	/*
-	if (self->state != DS_PUBKEYONLY)
-	{
-		return 0;
-	}
-	*/
+    DSBASE* self = _self;
 	
-	return (((DSBASEvtbl*)(((OBJECT*)(self->object))->vptr))->verify)((void*)self, msg, msglen, sig, siglen);
+    return (((DSBASEvtbl*)(((OBJECT*)(self->object))->vptr))->verify)((void*)self, msg, msglen, sig, siglen);
 }

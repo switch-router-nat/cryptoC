@@ -3,7 +3,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2017-10-06     QshLyc       first version
+ * 2017-10-06     187J3X1       first version
  */
 
 #include <stdio.h>
@@ -24,7 +24,7 @@
 #define SHA512_LENGTHSIZE_BYTE   16   
 
 static const uint64_t sha512_kc[80] = {
-	0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc, 0x3956c25bf348b538, 
+    0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc, 0x3956c25bf348b538, 
     0x59f111f1b605d019, 0x923f82a4af194f9b, 0xab1c5ed5da6d8118, 0xd807aa98a3030242, 0x12835b0145706fbe, 
     0x243185be4ee4b28c, 0x550c7dc3d5ffb4e2, 0x72be5d74f27b896f, 0x80deb1fe3b1696b1, 0x9bdc06a725c71235, 
     0xc19bf174cf692694, 0xe49b69c19ef14ad2, 0xefbe4786384f25e3, 0x0fc19dc68b8cd5b5, 0x240ca1cc77ac9c65, 
@@ -57,64 +57,66 @@ static void sha512_initstate(uint64_t* state)
 
 static void sha512_expandword(const uint8_t* pdata, uint64_t* W)
 {
-	uint8_t i;
-	uint64_t s0, s1;
+    uint8_t i;
+    uint64_t s0, s1;
 
-	for (i = 0; i < 16; i++)
-	{
-		W[i] = ((((uint64_t)(pdata[i * 8 + 0])) << 56) |
-			   (((uint64_t)(pdata[i * 8 + 1])) << 48) |
-			   (((uint64_t)(pdata[i * 8 + 2])) << 40) |
-			   (((uint64_t)(pdata[i * 8 + 3])) << 32) |
-			   (((uint64_t)(pdata[i * 8 + 4])) << 24) |
-			   (((uint64_t)(pdata[i * 8 + 5])) << 16) |
-			   (((uint64_t)(pdata[i * 8 + 6])) << 8) |
-			   (((uint64_t)(pdata[i * 8 + 7])) << 0));
-	}
+    for (i = 0; i < 16; i++)
+    {
+        W[i] = ((((uint64_t)(pdata[i * 8 + 0])) << 56) |
+            (((uint64_t)(pdata[i * 8 + 1])) << 48) |
+            (((uint64_t)(pdata[i * 8 + 2])) << 40) |
+            (((uint64_t)(pdata[i * 8 + 3])) << 32) |
+            (((uint64_t)(pdata[i * 8 + 4])) << 24) |
+            (((uint64_t)(pdata[i * 8 + 5])) << 16) |
+            (((uint64_t)(pdata[i * 8 + 6])) << 8) |
+            (((uint64_t)(pdata[i * 8 + 7])) << 0));
+    }
 
-	for (i = 16; i < 80; i++)
-	{
-		/* Extend the first 16 words into the remaining 64 words w[16..79] of the message schedule array: */
-		s0 = Rotr64(W[i-15], 1) ^ Rotr64(W[i-15], 8) ^ (W[i-15] >> 7);
-		s1 = Rotr64(W[i-2], 19) ^ Rotr64(W[i-2], 61) ^ (W[i-2] >> 6);
-		W[i] = W[i-16] + s0 + W[i-7] + s1;
-	}
+    for (i = 16; i < 80; i++)
+    {
+        /* Extend the first 16 words into the remaining 64 words w[16..79] of the message schedule array: */
+        s0 = Rotr64(W[i-15], 1) ^ Rotr64(W[i-15], 8) ^ (W[i-15] >> 7);
+        s1 = Rotr64(W[i-2], 19) ^ Rotr64(W[i-2], 61) ^ (W[i-2] >> 6);
+        W[i] = W[i-16] + s0 + W[i-7] + s1;
+    }
+
+    return;
 }
 
 static void sha512_round(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d, uint64_t* e, uint64_t* f, uint64_t* g, uint64_t* h, uint64_t W, uint64_t Kc)
 {
-	uint64_t ta,tb, tc,td,te,tf,tg,th;
-	uint64_t S0,S1;
-	uint64_t ch,maj;
-	uint64_t temp1,temp2;
+    uint64_t ta,tb, tc,td,te,tf,tg,th;
+    uint64_t S0,S1;
+    uint64_t ch,maj;
+    uint64_t temp1,temp2;
 
-	ta = *a;
-	tb = *b;
-	tc = *c; 
-	td = *d;
-	te = *e;
-	tf = *f;
-	tg = *g;
-	th = *h;
- 
-	S1 = Rotr64(te, 14) ^ Rotr64(te, 18) ^ Rotr64(te, 41); 
- 	ch = (te & tf) ^ ((~te) & tg);
- 	temp1 = th + S1 + ch + Kc + W;
+    ta = *a;
+    tb = *b;
+    tc = *c; 
+    td = *d;
+    te = *e;
+    tf = *f;
+    tg = *g;
+    th = *h;
 
- 	S0  = Rotr64(ta, 28) ^ Rotr64(ta, 34) ^ Rotr64(ta, 39); 
- 	maj = (ta & tb) ^ (ta & tc) ^ (tb & tc);
- 	temp2 = S0 + maj;
+    S1 = Rotr64(te, 14) ^ Rotr64(te, 18) ^ Rotr64(te, 41); 
+    ch = (te & tf) ^ ((~te) & tg);
+    temp1 = th + S1 + ch + Kc + W;
 
- 	*a = temp1 + temp2;
- 	*b = ta;
- 	*c = tb;
- 	*d = tc;
- 	*e = td + temp1;
- 	*f = te;
- 	*g = tf;
- 	*h = tg;
+    S0  = Rotr64(ta, 28) ^ Rotr64(ta, 34) ^ Rotr64(ta, 39); 
+    maj = (ta & tb) ^ (ta & tc) ^ (tb & tc);
+    temp2 = S0 + maj;
 
- 	return;
+    *a = temp1 + temp2;
+    *b = ta;
+    *c = tb;
+    *d = tc;
+    *e = td + temp1;
+    *f = te;
+    *g = tf;
+    *h = tg;
+
+    return;
 }
 /*
 	@state: 8 * 64bit
@@ -122,7 +124,7 @@ static void sha512_round(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d, uin
 */
 static void sha512_transform(uint64_t *state, const uint8_t *pdata)
 {
-	uint64_t W[80] = {0x0};
+    uint64_t W[80] = {0x0};
 
     sha512_expandword(pdata, W);
 
@@ -131,15 +133,15 @@ static void sha512_transform(uint64_t *state, const uint8_t *pdata)
     uint64_t c = state[2];
     uint64_t d = state[3];
     uint64_t e = state[4];
-	uint64_t f = state[5];
+    uint64_t f = state[5];
     uint64_t g = state[6];
     uint64_t h = state[7];    
 
     for (int i = 0; i < 80; ++i)
     {
-    	sha512_round(&a, &b, &c, &d, &e, &f, &g, &h, W[i], sha512_kc[i]); 
+        sha512_round(&a, &b, &c, &d, &e, &f, &g, &h, W[i], sha512_kc[i]); 
     }
-    
+
     state[0] += a;
     state[1] += b;
     state[2] += c;
@@ -160,94 +162,94 @@ static void sha512_transform(uint64_t *state, const uint8_t *pdata)
 */
 static void sha512_calculatedigest(void* _self, const uint8_t *data, uint64_t size, uint8_t *digest)
 {
-	const uint8_t* pdata = data;
-	uint64_t state[8];
-	uint64_t unhashbyte;
-	uint8_t last_chunk[SHA512_CHUNKSIZE_BYTE];
-	uint8_t secondlast_chunk[SHA512_CHUNKSIZE_BYTE];
-	uint8_t i;
+    const uint8_t* pdata = data;
+    uint64_t state[8];
+    uint64_t unhashbyte;
+    uint8_t last_chunk[SHA512_CHUNKSIZE_BYTE];
+    uint8_t secondlast_chunk[SHA512_CHUNKSIZE_BYTE];
+    uint8_t i;
 
-	memset(last_chunk, 0, SHA512_CHUNKSIZE_BYTE);
-	memset(secondlast_chunk, 0, SHA512_CHUNKSIZE_BYTE);
+    memset(last_chunk, 0, SHA512_CHUNKSIZE_BYTE);
+    memset(secondlast_chunk, 0, SHA512_CHUNKSIZE_BYTE);
 
     unhashbyte = size >> 3;
 
     sha512_initstate(state);
 
-	while (unhashbyte >= SHA512_CHUNKSIZE_BYTE)
-	{
-		sha512_transform(state, pdata);
-		
-		pdata += SHA512_CHUNKSIZE_BYTE;
-		
-		unhashbyte -= SHA512_CHUNKSIZE_BYTE;
-	}
+    while (unhashbyte >= SHA512_CHUNKSIZE_BYTE)
+    {
+        sha512_transform(state, pdata);
 
-	if (unhashbyte < (SHA512_CHUNKSIZE_BYTE - SHA512_LENGTHSIZE_BYTE))
-	{
-		memcpy(last_chunk, pdata, unhashbyte);
-		
-		last_chunk[unhashbyte] = 0x80;		
-	}
-	else if (unhashbyte == (SHA512_CHUNKSIZE_BYTE - SHA512_LENGTHSIZE_BYTE))
-	{
-		memcpy(last_chunk, pdata, unhashbyte);
-	}
-	else
-	{
-		memcpy(secondlast_chunk, pdata, unhashbyte);
-		
-		secondlast_chunk[unhashbyte] = 0x80;
+        pdata += SHA512_CHUNKSIZE_BYTE;
 
-		sha512_transform(state, secondlast_chunk);
-	}
+        unhashbyte -= SHA512_CHUNKSIZE_BYTE;
+    }
 
-	last_chunk[SHA512_CHUNKSIZE_BYTE - 8] = (uint8_t)(size >> 56);
-	last_chunk[SHA512_CHUNKSIZE_BYTE - 7] = (uint8_t)(size >> 48);
-	last_chunk[SHA512_CHUNKSIZE_BYTE - 6] = (uint8_t)(size >> 40);
-	last_chunk[SHA512_CHUNKSIZE_BYTE - 5] = (uint8_t)(size >> 32);
-	last_chunk[SHA512_CHUNKSIZE_BYTE - 4] = (uint8_t)(size >> 24);
-	last_chunk[SHA512_CHUNKSIZE_BYTE - 3] = (uint8_t)(size >> 16);
-	last_chunk[SHA512_CHUNKSIZE_BYTE - 2] = (uint8_t)(size >> 8);
-	last_chunk[SHA512_CHUNKSIZE_BYTE - 1] = (uint8_t)(size);
+    if (unhashbyte < (SHA512_CHUNKSIZE_BYTE - SHA512_LENGTHSIZE_BYTE))
+    {
+        memcpy(last_chunk, pdata, unhashbyte);
 
-	sha512_transform(state, last_chunk);
+        last_chunk[unhashbyte] = 0x80;		
+    }
+    else if (unhashbyte == (SHA512_CHUNKSIZE_BYTE - SHA512_LENGTHSIZE_BYTE))
+    {
+        memcpy(last_chunk, pdata, unhashbyte);
+    }
+    else
+    {
+        memcpy(secondlast_chunk, pdata, unhashbyte);
 
-	for (i = 0; i < 8; i++)
-	{
-		digest[i * 8 + 0] = (uint8_t)(state[i] >> 56);
-		digest[i * 8 + 1] = (uint8_t)(state[i] >> 48);
-		digest[i * 8 + 2] = (uint8_t)(state[i] >> 40);
-		digest[i * 8 + 3] = (uint8_t)(state[i] >> 32);
-		digest[i * 8 + 4] = (uint8_t)(state[i] >> 24);
-		digest[i * 8 + 5] = (uint8_t)(state[i] >> 16);
-		digest[i * 8 + 6] = (uint8_t)(state[i] >> 8);
-		digest[i * 8 + 7] = (uint8_t)(state[i]);
-	}
+        secondlast_chunk[unhashbyte] = 0x80;
 
-	return;
+        sha512_transform(state, secondlast_chunk);
+    }
+
+    last_chunk[SHA512_CHUNKSIZE_BYTE - 8] = (uint8_t)(size >> 56);
+    last_chunk[SHA512_CHUNKSIZE_BYTE - 7] = (uint8_t)(size >> 48);
+    last_chunk[SHA512_CHUNKSIZE_BYTE - 6] = (uint8_t)(size >> 40);
+    last_chunk[SHA512_CHUNKSIZE_BYTE - 5] = (uint8_t)(size >> 32);
+    last_chunk[SHA512_CHUNKSIZE_BYTE - 4] = (uint8_t)(size >> 24);
+    last_chunk[SHA512_CHUNKSIZE_BYTE - 3] = (uint8_t)(size >> 16);
+    last_chunk[SHA512_CHUNKSIZE_BYTE - 2] = (uint8_t)(size >> 8);
+    last_chunk[SHA512_CHUNKSIZE_BYTE - 1] = (uint8_t)(size);
+
+    sha512_transform(state, last_chunk);
+
+    for (i = 0; i < 8; i++)
+    {
+        digest[i * 8 + 0] = (uint8_t)(state[i] >> 56);
+        digest[i * 8 + 1] = (uint8_t)(state[i] >> 48);
+        digest[i * 8 + 2] = (uint8_t)(state[i] >> 40);
+        digest[i * 8 + 3] = (uint8_t)(state[i] >> 32);
+        digest[i * 8 + 4] = (uint8_t)(state[i] >> 24);
+        digest[i * 8 + 5] = (uint8_t)(state[i] >> 16);
+        digest[i * 8 + 6] = (uint8_t)(state[i] >> 8);
+        digest[i * 8 + 7] = (uint8_t)(state[i]);
+    }
+
+    return;
 } 
 
 static SHAvtbl const vtbl = {
-	&sha512_calculatedigest,
+    &sha512_calculatedigest,
 };
 
 static void* sha512_ctor(void *_self, va_list *app)
 {
-	SHA512 *self = _self;
-	
-	((const OBJECT*)Sha)->ctor(_self, app);
+    SHA512 *self = _self;
 
-	return _self;
+    ((const OBJECT*)Sha)->ctor(_self, app);
+
+    return _self;
 }
 
 static void* sha512_dtor(void* _self)
 {
-	SHA512* self = _self;
-	
-	((const OBJECT*)Sha)->dtor(self);
+    SHA512* self = _self;
 
-	return _self;
+    ((const OBJECT*)Sha)->dtor(self);
+
+    return _self;
 }
 
 static const OBJECT _Sha512 = {

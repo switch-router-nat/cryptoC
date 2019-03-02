@@ -2,7 +2,7 @@
  * File       : cryptoc.h *
  * Change Logs:
  * Date           Author       Notes
- * 2017-10-06     QshLyc       first version
+ * 2017-10-06    187J3X1    first version
  */
 
 #ifndef _CRYPTOC_H_
@@ -17,16 +17,16 @@ void delete (void* self);
 
 /***** AES start ********/
 enum aes_type_e{
-	AES_TYPE_128 = 0,
-	AES_TYPE_192,
-	AES_TYPE_256
+    AES_TYPE_128 = 0,
+    AES_TYPE_192,
+    AES_TYPE_256
 };
 extern const void* Aes;
 /*****AES end ***********/
 
 enum blockcipher_mode_e{
-	BLOCKCIPHER_MODE_ECB = 0,
-	BLOCKCIPHER_MODE_CBC,
+    BLOCKCIPHER_MODE_ECB = 0,
+    BLOCKCIPHER_MODE_CBC,
 };
 
 enum blockcipher_pad_e{
@@ -45,11 +45,11 @@ int BlockCipher_Decryption(void* _self, const uint8_t* ciphertext, uint32_t ciph
 /*********************/
 
 typedef struct{
-	uint32_t *data;
-	int len;   
-	int top;   /* the first non-zero uint32_t from the left */
-	int topbit;/* the first non-zero bit in data[top]       */
-	int neg;
+    uint32_t *data;
+    int len;   
+    int top;   /* the first non-zero uint32_t from the left */
+    int topbit;/* the first non-zero bit in data[top]       */
+    int neg;
 }b_uint32_t;
 
 typedef struct{
@@ -60,13 +60,13 @@ typedef struct{
 
 #define B_CTX_SIZE  16
 typedef struct{
-	int len;
-	int depth1;
-	int depth2;
-	int depth4;
-	b_uint32_t ctx1[B_CTX_SIZE];
-	b_uint32_t ctx2[B_CTX_SIZE];
-	b_uint32_t ctx4[B_CTX_SIZE];
+    int len;
+    int depth1;
+    int depth2;
+    int depth4;
+    b_uint32_t ctx1[B_CTX_SIZE];
+    b_uint32_t ctx2[B_CTX_SIZE];
+    b_uint32_t ctx4[B_CTX_SIZE];
 }b_ctx_t;
 
 void b_ctx_init(b_ctx_t* ctx, int len);
@@ -128,10 +128,10 @@ void dump(char* string, b_uint32_t *a);
 extern const void* Dsa;
 
 enum dsa_size_e{
-	DSA_L1024_N160,
-	DSA_L2048_N224,
-	DSA_L2048_N256,
-	DSA_L3072_N256,
+    DSA_L1024_N160,
+    DSA_L2048_N224,
+    DSA_L2048_N256,
+    DSA_L3072_N256,
 };
 
 
@@ -148,26 +148,26 @@ enum ecc_curve_e{
 extern const void* Ecc;
 
 typedef struct{
-	b_uint32_t* p;    /* prime */     
-	b_uint32_t* a;   
-	b_uint32_t* b;   
-	b_uint32_t* Gx; 	
-	b_uint32_t* Gy;	
-	b_uint32_t* n;	
-	b_uint32_t* h;	
+    b_uint32_t* p;    /* prime */     
+    b_uint32_t* a;   
+    b_uint32_t* b;   
+    b_uint32_t* Gx; 	
+    b_uint32_t* Gy;	
+    b_uint32_t* n;	
+    b_uint32_t* h;	
 }ecc_curve_t;
 
 extern const void* Ecc_Point;
 
 typedef struct{
-	const void* object;
-	b_uint32_t* x;
-	b_uint32_t* y;
+    const void* object;
+    b_uint32_t* x;
+    b_uint32_t* y;
 }ECC_POINT;
 
 typedef struct{
-	const void* object;
-	ecc_curve_t* curve;
+    const void* object;
+    ecc_curve_t* curve;
 }ECC;
 
 int ecc_multiplication(void* _self, b_uint32_t* d, void* _pt1, void* _pt2, b_ctx_t* ctx);
@@ -176,8 +176,8 @@ int ecc_multiplication(void* _self, b_uint32_t* d, void* _pt1, void* _pt2, b_ctx
 extern const void* Rsa;
 
 enum rsa_format {
-	RSA_FORMAT_PKCS1,
-	RSA_FORMAT_PKCS8
+    RSA_FORMAT_PKCS1,
+    RSA_FORMAT_PKCS8
 };
 
 void rsa_key_generate(void* _self);

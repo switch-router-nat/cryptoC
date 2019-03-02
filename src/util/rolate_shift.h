@@ -2,7 +2,7 @@
  * File       : rolate_shift.h *
  * Change Logs:
  * Date           Author       Notes
- * 2017-10-05     QshLyc       first version
+ * 2017-10-05     187J3X1       first version
  */
 #ifndef _ROLATE_SHIFT_H_
 #define _ROLATE_SHIFT_H_
