@@ -23,9 +23,9 @@ extern "C" {
 
 #define ASN1_BUFF_PAGE_SIZE 1024
 struct asn1_buff{
-    uint8_t* head;
-    uint8_t* data;
-    uint8_t* tail;
+    char* head;
+    char* data;
+    char* tail;
     uint8_t  page;
 };
 
@@ -58,7 +58,7 @@ typedef struct{
 
 typedef struct{
     ASN1_ELEMENT super;
-    uint8_t* oid;
+    char* oid;
 }ASN1_OBJECTID;
 
 #define ASN1_INTERGER_FLAG_DEFAULT   0x00000000

@@ -41,7 +41,7 @@ typedef struct{
 }BLOCKCIPHER;
 
 typedef struct {
-    int (*SetKey)(void* _self, const uint8_t* userkey);
+    int (*SetKey)(void* _self, const char* userkey);
     int (*ProcessBlock)(void *_self, const uint8_t* inBlock, uint8_t *outBlock);
 }BLOCKCIPHERvtbl;
 

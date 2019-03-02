@@ -26,7 +26,7 @@ struct asn1_buff* asn1buf_alloc(uint8_t page)
     struct asn1_buff* asb = (struct asn1_buff *)malloc(sizeof(struct asn1_buff));
     if (asb)
     {
-        asb->head = (uint8_t*) malloc(page * ASN1_BUFF_PAGE_SIZE);
+        asb->head = (char*) malloc(page * ASN1_BUFF_PAGE_SIZE);
         if (asb->head)
         {
             asb->data = asb->head + page * ASN1_BUFF_PAGE_SIZE;
@@ -91,7 +91,7 @@ static void asn1buf_enlarge(struct asn1_buff *asb)
                 +------+                          +------|
 
 */
-static uint8_t *asn1buf_push(struct asn1_buff *asb, uint32_t len)
+static char *asn1buf_push(struct asn1_buff *asb, uint32_t len)
 {
     if(asb->head + len > asb->data)
     {
@@ -241,7 +241,7 @@ static uint32_t asn1_interger_write(void* _self, struct asn1_buff* asb)
 
         while (i < vsize)
         {
-            int j = bn->top + (i+3)>>2;
+            int j = (bn->top) + ((i + 3) >> 2);
             asb->data[i++] = bn->data[j] >> 24;
             asb->data[i++] = bn->data[j] >> 16;
             asb->data[i++] = bn->data[j] >> 8;
@@ -302,7 +302,7 @@ static void* asn1_objectid_ctor(void *_self, va_list *app)
 {
     ASN1_OBJECTID* self = ((const OBJECT*)Asn1_Element)->ctor(_self, app);
     	
-    self->oid = va_arg(*app, uint8_t*);
+    self->oid = va_arg(*app, char*);
     self->super.type = ASN1_TYPE_OID;
 
     return _self;

@@ -412,12 +412,7 @@ int b_add(b_uint32_t *a, b_uint32_t *b, b_uint32_t *c)
 void b_sub2(b_uint32_t *a, uint32_t b, int l)
 {
     int align = a->len - 1 - l;
-    int top;
-    int va;
     uint32_t borrow = 0;
-
-    top = b_valid_top(a);
-    va = a->len - top;
 
     do{
     	if (borrow)
@@ -523,7 +518,7 @@ void b_mul(b_uint32_t *x, b_uint32_t *y, b_uint32_t *z)
     uint32_t c0,c1,c2;
     uint32_t* px,*py,*pz;
 
-    int nc, i,j,k,tx,ty;
+    int i,j,k,tx,ty;
     int len_x, len_y, len_z;
 
     len_z = z->len;
@@ -538,7 +533,7 @@ void b_mul(b_uint32_t *x, b_uint32_t *y, b_uint32_t *z)
 
     pz = &z->data[len_z-1];
 
-    for (int i = len_z-1; i >= 0; i--)
+    for (i = len_z-1; i >= 0; i--)
     {
         ty = (i-len_x > 0)?(i-len_x):0;
         tx = i-ty-1;
@@ -634,8 +629,6 @@ void b_mul(b_uint32_t *x, b_uint32_t *y, b_uint32_t *z)
 */
 int b_cmp(b_uint32_t* a, b_uint32_t* b)
 {
-    int len_a = a->len;
-    int len_b = b->len;
     int va, vb;
     int top_a, top_b;
 
@@ -671,10 +664,8 @@ int b_cmp(b_uint32_t* a, b_uint32_t* b)
 
 int b_cmp2(b_uint32_t* a, uint32_t b)
 {
-    int top_a;
     int va;
 
-    top_a = b_valid_top(a);
     va = a->len - a->top;
 
     if (b == 0)
@@ -1468,7 +1459,6 @@ void euclidean_algorithm(b_uint32_t* r0, b_uint32_t* r1, b_uint32_t* gcd, b_ctx_
 */
 void ex_euclidean_algorithm(b_uint32_t* r0, b_uint32_t* r1, b_uint32_t* gcd, b_uint32_t* t, b_ctx_t* ctx)
 {
-    int i = 0;
     int len_r0 = r0->len;
     b_uint32_t* r[3];
     b_uint32_t* cor1[3];

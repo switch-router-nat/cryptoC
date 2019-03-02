@@ -42,6 +42,11 @@ static void* dsa_ctor(void *_self, va_list *app)
             self->y = b_create(32);
             break;
         }
+        /* FIXME: NOT handle other mode */
+        default:
+        {
+            break;
+        }
     }
 
     return self;

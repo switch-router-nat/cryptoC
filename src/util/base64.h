@@ -13,8 +13,8 @@
 extern "C" {
 #endif
 
-uint32_t cc_base64_encode(const uint8_t* plaintext, uint32_t size, uint8_t* base64);
-uint32_t cc_base64_decode(const uint8_t* base64, uint32_t base64size, uint8_t *plaintext);
+uint32_t cc_base64_encode(const char* plaintext, uint32_t size, char* base64);
+uint32_t cc_base64_decode(const char* base64, uint32_t base64size, char *plaintext);
 
 #ifdef __cplusplus
 }

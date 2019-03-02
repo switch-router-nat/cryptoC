@@ -108,9 +108,7 @@ static void rsa_gen_d(RSA* self, b_uint32_t* fn, b_ctx_t* ctx)
 void rsa_key_generate(void* _self)
 {
     RSA* self = (RSA*)_self;
-
     b_uint32_t* fn;
-    b_uint32_t* gcd;
     b_uint32_t* tmp;
 
     int len = 16;
@@ -118,7 +116,6 @@ void rsa_key_generate(void* _self)
     b_ctx_init(&ctx, len);
 
     fn  = b_ctx_alloc(&ctx, len<<1);
-    gcd = b_ctx_alloc(&ctx, len);
     tmp = b_ctx_alloc(&ctx, len);
 
     prime_random(self->p, &ctx);
@@ -190,6 +187,7 @@ void rsa_key_generate(void* _self)
  *  calculate element size 
  *  @plusminusbit indicates if there is 1 byte for bn->neg
  */
+ #if 0
 static void rsa_calc_elementsize(b_uint32_t* bn, int plusminusbit, uint8_t* tlsize, uint8_t* vsize)
 {
     int topbit;
@@ -229,6 +227,7 @@ static void rsa_calc_elementsize(b_uint32_t* bn, int plusminusbit, uint8_t* tlsi
 
     return;
 }
+#endif
 
 int rsa_gen_pubkeypem(void* _self, char* filename, enum rsa_format format)
 {
@@ -237,7 +236,7 @@ int rsa_gen_pubkeypem(void* _self, char* filename, enum rsa_format format)
     int rc = 0;
     uint32_t asn1_size  = 0;
     uint32_t coded_size = 0;
-    uint8_t base64str[128];
+    char base64str[128];
     uint32_t base64str_size = 0;
 
     /* write to file */	
@@ -374,7 +373,7 @@ int rsa_gen_prikeypem(void* _self, char* filename, enum rsa_format format)
     int rc = 0;
     uint32_t asn1_size  = 0;
     uint32_t coded_size = 0;
-    uint8_t base64str[1024];
+    char base64str[1024];
     uint32_t base64str_size = 0;
 
     /* write to file */	

@@ -45,14 +45,18 @@ int main()
 
     rsa_key_generate(rsa);
 
+    printf("=== key generate ===\n");
+    
     if (0 == rsa_encryption(rsa, &b_x, &b_y))
     {
-        dump("ut y ", &b_y);
+        printf("=== encrypt ===\n");
+        dump("test y ", &b_y);
     }
 
     if (0 == rsa_decryption(rsa, &b_y, &b_x))
     {
-        dump("ut x ", &b_x);
+        printf("=== decrypt ===\n");
+        dump("test x ", &b_x);
     }
 
     rsa_gen_pubkeypem(rsa, "pubkey.pem", RSA_FORMAT_PKCS8);

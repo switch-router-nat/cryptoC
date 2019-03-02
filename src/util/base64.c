@@ -11,11 +11,8 @@
 #include <string.h>
 #include <stdint.h>
 
-//#include "bn.h"
-
-
-static const uint8_t* base64enc_tbl = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-static const uint8_t base64dec_tbl[]= 
+static const char* base64enc_tbl = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char base64dec_tbl[]= 
 {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -33,7 +30,7 @@ static const uint8_t base64dec_tbl[]=
 
 
 
-uint32_t cc_base64_encode(const uint8_t* plaintext, uint32_t size, uint8_t* base64)
+uint32_t cc_base64_encode(const char* plaintext, uint32_t size, char* base64)
 {
     uint8_t b1,b2,b3;
     uint32_t i = 0;
@@ -64,18 +61,17 @@ uint32_t cc_base64_encode(const uint8_t* plaintext, uint32_t size, uint8_t* base
 }
 
 
-uint32_t cc_base64_decode(const uint8_t* base64, uint32_t base64size, uint8_t *plaintext) 
+uint32_t cc_base64_decode(const char* base64, uint32_t base64size, char *plaintext) 
 {
     uint32_t i = 0;
     uint32_t j = 0;
-    uint32_t plainsize = 0;
     uint8_t n1,n2,n3,n4;
     while (j < base64size)
     {
-        n1 = base64dec_tbl[base64[j++]];
-        n2 = base64dec_tbl[base64[j++]];
-        n3 = base64dec_tbl[base64[j++]];
-        n4 = base64dec_tbl[base64[j++]];
+        n1 = base64dec_tbl[(uint8_t)base64[j++]];
+        n2 = base64dec_tbl[(uint8_t)base64[j++]];
+        n3 = base64dec_tbl[(uint8_t)base64[j++]];
+        n4 = base64dec_tbl[(uint8_t)base64[j++]];
 
         plaintext[i++] = (n1 << 2) | (n2 >> 4);
 

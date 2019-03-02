@@ -113,6 +113,54 @@ static void* ecc_dtor(void* _self)
 }
 
 
+/* Check whether @pt is on the @self->curve: y^2 = x^3 + ax + b mod p
+ * return 1 -- on the curve 
+ *        0 -- not on the curve 
+*/
+static int ecc_validation(ECC* self, ECC_POINT* pt, b_ctx_t* ctx)
+{
+    int rc = 0;
+    b_uint32_t* prime = self->curve->p;
+    b_uint32_t* t1;
+    b_uint32_t* t2;
+    b_uint32_t* t3;
+    b_uint32_t* coe; 
+    b_ctx_bkp_t bkp;
+    b_ctx_save(ctx, &bkp);
+
+    t1 = b_ctx_alloc(ctx, prime->len);
+    t2 = b_ctx_alloc(ctx, prime->len);
+    t3 = b_ctx_alloc(ctx, prime->len);
+    coe = b_ctx_alloc(ctx, prime->len);
+
+    /* coe = 3 */
+    b_assign(coe, 0x00000003);
+
+    /* t1 = x^3 */
+    b_expmod(pt->x, coe, prime, t1, ctx);
+
+    /* t2 = ax */
+    b_mulmod(pt->x, self->curve->a, prime, t2, ctx);
+
+    /* t3 = t1 + t2 = x^3 + ax */
+    b_addmod(t1, t2, prime, t3, ctx);
+
+    /* t1 = t3+ b = x^3 + ax + b */
+    b_addmod(t3, self->curve->b, prime, t1, ctx);
+
+    /* t2 = y^2  */
+    b_mulmod(pt->y, pt->y, prime, t2, ctx);
+
+    if (b_cmp(t1, t2) == 0)
+    {
+        rc = 1;
+    }
+
+    b_ctx_restore(ctx, &bkp);
+
+    return rc;
+}
+
 /*
    pt2 = pt1 + pt1;
 */
@@ -181,10 +229,11 @@ static int ecc_doubling(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, b_ctx_t* ctx)
     /* y2 = s*(x1 - x2) - y1  mod p */
     b_submod(t2, pt1->y, prime, pt2->y, ctx);
 
-    err:
+    rc = ecc_validation(self, pt2, ctx);
+err:
     b_ctx_restore(ctx, &bkp);
 
-    return 0;
+    return rc;
 }
 
 /*
@@ -196,7 +245,6 @@ static int ecc_addition(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, ECC_POINT* pt
     b_uint32_t* s;
     b_uint32_t* t1;
     b_uint32_t* t2;
-    b_uint32_t* t3;
     b_uint32_t* prime = self->curve->p;
     b_ctx_bkp_t bkp;
 
@@ -205,7 +253,6 @@ static int ecc_addition(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, ECC_POINT* pt
     s  = b_ctx_alloc(ctx, prime->len);
     t1 = b_ctx_alloc(ctx, prime->len);
     t2 = b_ctx_alloc(ctx, prime->len);
-    t3 = b_ctx_alloc(ctx, prime->len);
 
     /* t1 = x2 - x1 mod p */
     b_submod(pt2->x, pt1->x, prime, t1, ctx);
@@ -241,55 +288,8 @@ static int ecc_addition(ECC* self, ECC_POINT* pt1, ECC_POINT* pt2, ECC_POINT* pt
     /* y3 = s*(x1 - x3) - y1  mod p */
     b_submod(t2, pt1->y, prime, pt3->y, ctx);
 
+    rc = ecc_validation(self, pt3, ctx);    
 err:
-    b_ctx_restore(ctx, &bkp);
-
-    return rc;
-}
-
-/* Check whether @pt is on the @self->curve: y^2 = x^3 + ax + b mod p
- * return 1 -- on the curve 
- *        0 -- not on the curve 
-*/
-static int ecc_validation(ECC* self, ECC_POINT* pt, b_ctx_t* ctx)
-{
-    int rc = 0;
-    b_uint32_t* prime = self->curve->p;
-    b_uint32_t* t1;
-    b_uint32_t* t2;
-    b_uint32_t* t3;
-    b_uint32_t* coe; 
-    b_ctx_bkp_t bkp;
-    b_ctx_save(ctx, &bkp);
-
-    t1 = b_ctx_alloc(ctx, prime->len);
-    t2 = b_ctx_alloc(ctx, prime->len);
-    t3 = b_ctx_alloc(ctx, prime->len);
-    coe = b_ctx_alloc(ctx, prime->len);
-
-    /* coe = 3 */
-    b_assign(coe, 0x00000003);
-
-    /* t1 = x^3 */
-    b_expmod(pt->x, coe, prime, t1, ctx);
-
-    /* t2 = ax */
-    b_mulmod(pt->x, self->curve->a, prime, t2, ctx);
-
-    /* t3 = t1 + t2 = x^3 + ax */
-    b_addmod(t1, t2, prime, t3, ctx);
-
-    /* t1 = t3+ b = x^3 + ax + b */
-    b_addmod(t3, self->curve->b, prime, t1, ctx);
-
-    /* t2 = y^2  */
-    b_mulmod(pt->y, pt->y, prime, t2, ctx);
-
-    if (b_cmp(t1, t2) == 0)
-    {
-        rc = 1;
-    }
-
     b_ctx_restore(ctx, &bkp);
 
     return rc;
@@ -319,7 +319,6 @@ int ecc_multiplication(void* _self, b_uint32_t* d, void* _pt1, void* _pt2, b_ctx
     ECC_POINT* pt2 = (ECC_POINT* )_pt2;
     ECC_POINT* ptmp1 = (ECC_POINT* )new(Ecc_Point, self, NULL, NULL);
     ECC_POINT* ptmp2 = (ECC_POINT* )new(Ecc_Point, self, NULL, NULL);
-    b_uint32_t* prime = self->curve->p;
 
     b_ctx_bkp_t bkp;
     b_ctx_save(ctx, &bkp);

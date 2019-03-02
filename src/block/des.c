@@ -196,11 +196,12 @@ static int rawdes_calc_roundkey(RAW_DES* self, uint32_t left, uint32_t right, ui
     int idx;
 
     /* shift left example
-    /*  MSB     right(28bit valid)     LSB    MSB     left(28bit valid)       LSB
-    00001234XXXXXXXXXXXXXXXXXXXXABCD     0000ABABXXXXXXXXXXXXXXXXXXXXCDCD 
-    =>  cyclic left shit  (2) bit
-    000034XXXXXXXXXXXXXXXXXXXXABCD12     0000ABXXXXXXXXXXXXXXXXXXXXCDCDAB
-    */
+     *  MSB     right(28bit valid)     LSB    MSB     left(28bit valid)       LSB
+     *   00001234XXXXXXXXXXXXXXXXXXXXABCD      0000ABABXXXXXXXXXXXXXXXXXXXXCDCD 
+     * =>  cyclic left shit  (2) bit
+     *   000034XXXXXXXXXXXXXXXXXXXXABCD12      0000ABXXXXXXXXXXXXXXXXXXXXCDCDAB
+     *
+     */
     left = ((left << DES_KeyLeftShift[round]) | (left >> (28 - DES_KeyLeftShift[round]))) & 0x0FFFFFFF;
     right = ((right << DES_KeyLeftShift[round]) | (right >> (28 - DES_KeyLeftShift[round]))) & 0x0FFFFFFF;
 
@@ -255,7 +256,6 @@ static int rawdes_setkey(RAW_DES* self, const char* userkey)
 {
     uint32_t left  = 0;    
     uint32_t right = 0;
-    uint8_t bitshift  = 0;
     uint8_t byteshift = 0;
     uint8_t bytepos   = 0;
     uint8_t round = 0;
@@ -354,7 +354,7 @@ static void* des_dtor(void* _self)
 }
 
 
-static int des_setkey(void* _self, const uint8_t* userkey)
+static int des_setkey(void* _self, const char* userkey)
 {
     DES* self = (DES*)_self;
 
@@ -438,7 +438,7 @@ static void* des_3des_dtor(void* _self)
     return self;
 }
 
-static int des_3des_setkey(void* _self, const uint8_t* userkey)
+static int des_3des_setkey(void* _self, const char* userkey)
 {
     DES_3DES* self = (DES_3DES*)_self;
 

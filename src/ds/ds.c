@@ -53,7 +53,6 @@ static void* ds_ctor(void *_self, va_list *app)
 
 static void* ds_dtor(void* _self)
 {
-    DSBASE* self = _self;
     return _self;
 }
 

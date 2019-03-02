@@ -81,7 +81,7 @@ static int aes_calc_roundkey(AES* self, uint8_t round)
     return 0;
 }
 
-static int aes_setkey(void* _self, const uint8_t* userkey)
+static int aes_setkey(void* _self, const char* userkey)
 {
     AES* self = _self;
     uint8_t round;

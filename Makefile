@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -c
+CFLAGS = -Wall -g -c
 TARGET = libcryptoc.so
 
 ROOT_DIR=$(shell pwd)

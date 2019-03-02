@@ -196,7 +196,7 @@ static SHAvtbl const vtbl = {
 
 static void* sha1_ctor(void *_self, va_list *app)
 {
-    SHA1 *self = _self;
+
 
     ((const OBJECT*)Sha)->ctor(_self, app);
 
@@ -205,9 +205,7 @@ static void* sha1_ctor(void *_self, va_list *app)
 
 static void* sha1_dtor(void* _self)
 {
-    SHA1* self = _self;
-
-    ((const OBJECT*)Sha)->dtor(self);
+    ((const OBJECT*)Sha)->dtor(_self);
 
     return _self;
 }

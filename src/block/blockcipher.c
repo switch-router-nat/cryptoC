@@ -21,7 +21,7 @@
 /* 
     virtual function  implement by BLOCKCIPHER
 */
-static int blockcipher_setkey(void* _self, const uint8_t* userkey)
+static int blockcipher_setkey(void* _self, const char* userkey)
 {
     return 0;
 }

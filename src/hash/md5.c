@@ -235,8 +235,6 @@ static void* md5_ctor(void *_self, va_list *app)
 
 static void* md5_dtor(void* _self)
 {
-    MD5* self = _self;
-
     return _self;
 }
 

@@ -29,15 +29,11 @@ static SHAvtbl const vtbl = {
 
 static void* sha_ctor(void *_self, va_list *app)
 {
-    SHA *self = _self;
-
     return _self;
 }
 
 static void* sha_dtor(void* _self)
 {
-    SHA* self = _self;
-
     return _self;
 }
 
